@@ -1,9 +1,25 @@
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from database import get_db
+
+from database import get_db, engine, Base
+from routers import auth
+import models
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AI Software Requirement Engineer")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth.router)
 
 @app.get("/")
 def read_root():

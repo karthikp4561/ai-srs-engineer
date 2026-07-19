@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional
+from typing import List
 
 class UserCreate(BaseModel):
     name: str
@@ -38,6 +39,27 @@ class ProjectOut(BaseModel):
     title: str
     description: str
     status: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class AnalysisResult(BaseModel):
+    objectives: List[str]
+    scope: str
+    target_users: List[str]
+    functional_requirements: List[str]
+    non_functional_requirements: List[str]
+    constraints: List[str]
+    assumptions: List[str]
+
+class ProjectOut(BaseModel):
+    id: int
+    title: str
+    description: str
+    status: str
+    analysis_json: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

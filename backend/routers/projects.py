@@ -7,6 +7,9 @@ from models import Project, User
 from schemas import ProjectCreate, ProjectUpdate, ProjectOut
 from dependencies import get_current_user
 
+import json
+from ai_service import analyze_project_description
+
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 @router.post("/", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
@@ -82,3 +85,26 @@ def delete_project(
     db.delete(project)
     db.commit()
     return None
+
+@router.post("/{project_id}/analyze", response_model=ProjectOut)
+def analyze_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project = db.query(Project).filter(
+        Project.id == project_id, Project.user_id == current_user.id
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    try:
+        result = analyze_project_description(project.description)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"AI analysis failed: {str(e)}")
+
+    project.analysis_json = json.dumps(result)
+    project.status = "analyzed"
+    db.commit()
+    db.refresh(project)
+    return project

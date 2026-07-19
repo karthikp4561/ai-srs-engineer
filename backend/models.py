@@ -21,5 +21,6 @@ class Project(Base):
     title = Column(String, nullable=False)
     description = Column(Text, nullable=False)
     status = Column(String, default="draft")  # draft, analyzed, generated
+    analysis_json = Column(Text, nullable=True)  # stores AI-generated requirements as JSON text
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

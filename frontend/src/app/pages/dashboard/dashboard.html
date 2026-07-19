@@ -1,0 +1,27 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Your Projects</h1>
+    <div>
+      <button class="btn-primary" routerLink="/new-project">+ New Project</button>
+      <button class="btn-secondary" (click)="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading">Loading projects...</div>
+
+  <div *ngIf="!isLoading && projects.length === 0" class="empty-state">
+    <p>You don't have any projects yet.</p>
+    <button class="btn-primary" routerLink="/new-project">Create your first project</button>
+  </div>
+
+  <div class="project-grid" *ngIf="!isLoading && projects.length > 0">
+    <div class="project-card" *ngFor="let project of projects" (click)="openProject(project.id)">
+      <h3>{{ project.title }}</h3>
+      <p>{{ project.description.length > 120 ? (project.description | slice:0:120) + '...' : project.description }}</p>
+      <div class="project-footer">
+        <span class="status-badge">{{ project.status }}</span>
+        <button class="btn-delete" (click)="deleteProject(project.id, $event)">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

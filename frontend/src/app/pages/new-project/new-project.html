@@ -1,0 +1,20 @@
+<div class="auth-container">
+  <form (ngSubmit)="onSubmit()" class="auth-form wide">
+    <h2>Describe Your Project</h2>
+
+    <div *ngIf="errorMessage" class="error-box">{{ errorMessage }}</div>
+
+    <label>Project Title</label>
+    <input type="text" [(ngModel)]="title" name="title" required placeholder="e.g. Hydration Tracker App" />
+
+    <label>Describe your project idea in plain language</label>
+    <textarea [(ngModel)]="description" name="description" required rows="8"
+      placeholder="Describe what the app should do, who it's for, and any key features you have in mind..."></textarea>
+
+    <button type="submit" [disabled]="isLoading">
+      {{ isLoading ? 'Saving...' : 'Save Project' }}
+    </button>
+
+    <p><a routerLink="/dashboard">Cancel and go back</a></p>
+  </form>
+</div>

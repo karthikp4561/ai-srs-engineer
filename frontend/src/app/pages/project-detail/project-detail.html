@@ -1,0 +1,76 @@
+<div class="detail-container">
+  <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+
+  <div *ngIf="isLoading">Loading project...</div>
+
+  <div *ngIf="!isLoading && project">
+    <div class="detail-header">
+      <h1>{{ project.title }}</h1>
+      <span class="status-badge">{{ project.status }}</span>
+    </div>
+
+    <div class="section">
+      <h3>Description</h3>
+      <p>{{ project.description }}</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-box">{{ errorMessage }}</div>
+
+    <button *ngIf="!analysis" class="btn-primary" (click)="runAnalysis()" [disabled]="isAnalyzing">
+      {{ isAnalyzing ? 'Analyzing with AI...' : '✨ Analyze with AI' }}
+    </button>
+
+    <button *ngIf="analysis" class="btn-secondary" (click)="runAnalysis()" [disabled]="isAnalyzing">
+      {{ isAnalyzing ? 'Re-analyzing...' : '🔄 Re-analyze' }}
+    </button>
+
+    <div *ngIf="analysis" class="analysis-results">
+      <div class="section">
+        <h3>Objectives</h3>
+        <ul>
+          <li *ngFor="let obj of analysis.objectives">{{ obj }}</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Scope</h3>
+        <p>{{ analysis.scope }}</p>
+      </div>
+
+      <div class="section">
+        <h3>Target Users</h3>
+        <div class="tag-list">
+          <span class="tag" *ngFor="let user of analysis.target_users">{{ user }}</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Functional Requirements</h3>
+        <ul>
+          <li *ngFor="let req of analysis.functional_requirements">{{ req }}</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Non-Functional Requirements</h3>
+        <ul>
+          <li *ngFor="let req of analysis.non_functional_requirements">{{ req }}</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Constraints</h3>
+        <ul>
+          <li *ngFor="let c of analysis.constraints">{{ c }}</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Assumptions</h3>
+        <ul>
+          <li *ngFor="let a of analysis.assumptions">{{ a }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

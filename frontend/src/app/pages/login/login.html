@@ -1,19 +1,49 @@
-<div class="auth-container">
-  <form (ngSubmit)="onSubmit()" class="auth-form">
-    <h2>Login</h2>
+<div class="auth-split">
+  <aside class="auth-visual">
+    <div class="grid-overlay"></div>
+    <div class="visual-content">
+      <span class="eyebrow eyebrow-light">AI Software Requirement Engineer</span>
+      <h2>From a rough idea<br>to a full specification.</h2>
+      <p>Describe your project in plain language. Get objectives, requirements, and scope back in minutes.</p>
 
-    <div *ngIf="errorMessage" class="error-box">{{ errorMessage }}</div>
+      <div class="mock-spec">
+        <div class="mock-spec-header">
+          <span>SPEC-014</span>
+          <span class="mock-badge">Analyzed</span>
+        </div>
+        <div class="mock-line mock-line-title"></div>
+        <div class="mock-row"><span class="mock-num">01</span><div class="mock-line"></div></div>
+        <div class="mock-row"><span class="mock-num">02</span><div class="mock-line short"></div></div>
+        <div class="mock-row"><span class="mock-num">03</span><div class="mock-line"></div></div>
+      </div>
+    </div>
+  </aside>
 
-    <label>Email</label>
-    <input type="email" [(ngModel)]="email" name="email" required />
+  <section class="auth-form-panel">
+    <div class="auth-form-inner">
+      <span class="eyebrow">System access // Auth-01</span>
+      <h1>Sign in</h1>
+      <p class="subtext">Pick up where you left off on your specifications.</p>
 
-    <label>Password</label>
-    <input type="password" [(ngModel)]="password" name="password" required />
+      <form (ngSubmit)="onSubmit()">
+        <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
 
-    <button type="submit" [disabled]="isLoading">
-      {{ isLoading ? 'Logging in...' : 'Login' }}
-    </button>
+        <label class="field">
+          <span class="field-label">Email</span>
+          <input type="email" [(ngModel)]="email" name="email" required />
+        </label>
 
-    <p>Don't have an account? <a routerLink="/register">Register</a></p>
-  </form>
+        <label class="field">
+          <span class="field-label">Password</span>
+          <input type="password" [(ngModel)]="password" name="password" required />
+        </label>
+
+        <button type="submit" class="btn-primary btn-block" [disabled]="isLoading">
+          {{ isLoading ? 'Signing in…' : 'Sign in' }}
+        </button>
+
+        <p class="switch-line">New here? <a routerLink="/register">Create an account</a></p>
+      </form>
+    </div>
+  </section>
 </div>

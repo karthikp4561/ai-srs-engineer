@@ -1,7 +1,8 @@
-import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProjectService, Project, AnalysisResult } from '../../services/project';
+import { ProjectService, Project, AnalysisResult, DiagramResult } from '../../services/project';
+import mermaid from 'mermaid';
 
 @Component({
   selector: 'app-project-detail',
@@ -13,15 +14,20 @@ import { ProjectService, Project, AnalysisResult } from '../../services/project'
 export class ProjectDetail implements OnInit {
   project: Project | null = null;
   analysis: AnalysisResult | null = null;
+  diagrams: DiagramResult | null = null;
   isLoading = true;
   isAnalyzing = false;
+  isGeneratingDiagrams = false;
   errorMessage = '';
+  diagramsRendered = false;
 
   constructor(
     private route: ActivatedRoute,
     private projectService: ProjectService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+  }
 
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -34,8 +40,10 @@ export class ProjectDetail implements OnInit {
       next: (data) => {
         this.project = data;
         this.parseAnalysis();
+        this.parseDiagrams();
         this.isLoading = false;
         this.cdr.detectChanges();
+        this.renderDiagrams();
       },
       error: () => {
         this.errorMessage = 'Could not load project.';
@@ -48,6 +56,12 @@ export class ProjectDetail implements OnInit {
   parseAnalysis() {
     if (this.project?.analysis_json) {
       this.analysis = JSON.parse(this.project.analysis_json);
+    }
+  }
+
+  parseDiagrams() {
+    if (this.project?.diagrams_json) {
+      this.diagrams = JSON.parse(this.project.diagrams_json);
     }
   }
 
@@ -65,9 +79,63 @@ export class ProjectDetail implements OnInit {
       },
       error: (err) => {
         this.isAnalyzing = false;
-        this.errorMessage = err.error?.detail || 'Analysis failed. Please try again.';
+        this.errorMessage = this.extractErrorMessage(err);
         this.cdr.detectChanges();
       }
     });
+  }
+
+  runDiagramGeneration() {
+    if (!this.project) return;
+    this.isGeneratingDiagrams = true;
+    this.errorMessage = '';
+
+    this.projectService.generateDiagrams(this.project.id).subscribe({
+      next: (data) => {
+        this.project = data;
+        this.parseDiagrams();
+        this.isGeneratingDiagrams = false;
+        this.cdr.detectChanges();
+        setTimeout(() => this.renderDiagrams(), 0);
+      },
+      error: (err) => {
+        this.isGeneratingDiagrams = false;
+        this.errorMessage = this.extractErrorMessage(err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private async renderDiagrams() {
+    if (!this.diagrams) return;
+
+    const targets: { id: string; code: string }[] = [
+      { id: 'use-case-diagram', code: this.diagrams.use_case_diagram },
+      { id: 'class-diagram', code: this.diagrams.class_diagram },
+      { id: 'er-diagram', code: this.diagrams.er_diagram },
+    ];
+
+    for (const t of targets) {
+      const el = document.getElementById(t.id);
+      if (!el) continue;
+      try {
+        const { svg } = await mermaid.render(t.id + '-svg', t.code);
+        el.innerHTML = svg;
+      } catch (e) {
+        el.innerHTML = `<p class="diagram-error">Could not render this diagram.</p>`;
+        console.error('Mermaid render error:', e);
+      }
+    }
+  }
+
+  private extractErrorMessage(err: any): string {
+    const detail = err.error?.detail;
+    if (typeof detail === 'string') {
+      return detail;
+    }
+    if (Array.isArray(detail) && detail.length > 0) {
+      return detail.map((d: any) => d.msg).join(', ');
+    }
+    return 'Something went wrong. Please try again.';
   }
 }

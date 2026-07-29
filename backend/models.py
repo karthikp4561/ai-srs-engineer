@@ -20,7 +20,8 @@ class Project(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=False)
-    status = Column(String, default="draft")  # draft, analyzed, generated
-    analysis_json = Column(Text, nullable=True)  # stores AI-generated requirements as JSON text
+    status = Column(String, default="draft")
+    analysis_json = Column(Text, nullable=True)
+    diagrams_json = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

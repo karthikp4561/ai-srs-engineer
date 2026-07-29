@@ -15,6 +15,10 @@ export class Dashboard implements OnInit {
   projects: Project[] = [];
   isLoading = true;
 
+  get totalCount(): number { return this.projects.length; }
+  get draftCount(): number { return this.projects.filter(p => p.status === 'draft').length; }
+  get analyzedCount(): number { return this.projects.filter(p => p.status === 'analyzed').length; }
+
   constructor(
     private authService: AuthService,
     private projectService: ProjectService,

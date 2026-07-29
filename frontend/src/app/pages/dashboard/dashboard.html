@@ -1,26 +1,50 @@
-<div class="dashboard-container">
-  <div class="dashboard-header">
-    <h1>Your Projects</h1>
-    <div>
-      <button class="btn-primary" routerLink="/new-project">+ New Project</button>
-      <button class="btn-secondary" (click)="logout()">Logout</button>
+<div class="page">
+  <div class="dash-banner">
+    <div class="grid-overlay"></div>
+    <div class="banner-content">
+      <div>
+        <span class="eyebrow eyebrow-light">Project registry</span>
+        <h1>Your specifications</h1>
+      </div>
+      <div class="banner-actions">
+        <button class="btn-primary" routerLink="/new-project">+ New specification</button>
+        <button class="btn-ghost" (click)="logout()">Logout</button>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-item"><span class="stat-num">{{ totalCount }}</span><span class="stat-label">Total</span></div>
+      <div class="stat-item"><span class="stat-num">{{ draftCount }}</span><span class="stat-label">Draft</span></div>
+      <div class="stat-item"><span class="stat-num">{{ analyzedCount }}</span><span class="stat-label">Analyzed</span></div>
     </div>
   </div>
 
-  <div *ngIf="isLoading">Loading projects...</div>
+  <div *ngIf="isLoading" class="loading-text">Loading specifications…</div>
 
-  <div *ngIf="!isLoading && projects.length === 0" class="empty-state">
-    <p>You don't have any projects yet.</p>
-    <button class="btn-primary" routerLink="/new-project">Create your first project</button>
+  <div *ngIf="!isLoading && projects.length === 0" class="empty-state plate corner-marks">
+    <svg class="illustration" width="100" height="100" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 1.2rem auto; display: block;">
+      <circle cx="60" cy="60" r="38" stroke-dasharray="4 4" opacity="0.5"/>
+      <line x1="60" y1="14" x2="60" y2="106" opacity="0.25"/>
+      <line x1="14" y1="60" x2="106" y2="60" opacity="0.25"/>
+      <path d="M60 30 L40 90 M60 30 L80 90 M40 90 L80 90"/>
+      <circle cx="60" cy="30" r="3" fill="currentColor" stroke="none"/>
+    </svg>
+    <span class="eyebrow">Registry empty</span>
+    <h2>No specifications yet</h2>
+    <p>Describe your first project idea and let the analyzer turn it into a structured spec.</p>
+    <button class="btn-primary" routerLink="/new-project">Create your first specification</button>
   </div>
 
   <div class="project-grid" *ngIf="!isLoading && projects.length > 0">
-    <div class="project-card" *ngFor="let project of projects" (click)="openProject(project.id)">
+    <div class="project-card plate" *ngFor="let project of projects" (click)="openProject(project.id)">
+      <div class="card-top">
+        <span class="spec-id">SPEC-{{ project.id.toString().padStart(3, '0') }}</span>
+        <span class="status-badge" [ngClass]="project.status === 'draft' ? 'status-draft' : 'status-analyzed'">{{ project.status }}</span>
+      </div>
       <h3>{{ project.title }}</h3>
-      <p>{{ project.description.length > 120 ? (project.description | slice:0:120) + '...' : project.description }}</p>
-      <div class="project-footer">
-        <span class="status-badge">{{ project.status }}</span>
-        <button class="btn-delete" (click)="deleteProject(project.id, $event)">Delete</button>
+      <p>{{ project.description.length > 120 ? (project.description | slice:0:120) + '…' : project.description }}</p>
+      <div class="card-footer">
+        <span class="timestamp">{{ project.created_at | date:'MMM d, y' }}</span>
+        <button class="btn-ghost btn-small" (click)="deleteProject(project.id, $event)">Delete</button>
       </div>
     </div>
   </div>

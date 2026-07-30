@@ -104,6 +104,13 @@ def generate_diagrams(description: str, functional_requirements: list, target_us
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text, flags=re.MULTILINE).strip()
 
     try:
-        return json.loads(cleaned)
+        result = json.loads(cleaned)
     except json.JSONDecodeError as e:
         raise ValueError(f"AI returned invalid JSON: {e}\nRaw response: {raw_text[:500]}")
+
+    # Fix a common Mermaid syntax mistake the AI makes: "|>" instead of "|"
+    for key in ("use_case_diagram", "class_diagram", "er_diagram"):
+        if key in result:
+            result[key] = re.sub(r'\|>', '|', result[key])
+
+    return result

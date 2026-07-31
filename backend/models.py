@@ -23,5 +23,6 @@ class Project(Base):
     status = Column(String, default="draft")
     analysis_json = Column(Text, nullable=True)
     diagrams_json = Column(Text, nullable=True)
+    api_spec_json = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

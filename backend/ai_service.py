@@ -114,3 +114,56 @@ def generate_diagrams(description: str, functional_requirements: list, target_us
             result[key] = re.sub(r'\|>', '|', result[key])
 
     return result
+
+API_SPEC_PROMPT_TEMPLATE = """You are a backend API architect. Based on this project's functional requirements, design a REST API specification.
+
+Project Description:
+\"\"\"
+{description}
+\"\"\"
+
+Functional Requirements:
+{requirements}
+
+Generate a REST API specification with 5-10 endpoints covering the core functionality. For each endpoint include the HTTP method, path, a short description, an example request body (if applicable), and an example response body.
+
+Return ONLY a valid JSON object (no markdown, no code fences, no explanation) with exactly this structure:
+
+{{
+  "endpoints": [
+    {{
+      "method": "POST",
+      "path": "/api/resource",
+      "description": "short description of what this endpoint does",
+      "request_body": {{"example": "field"}},
+      "response_body": {{"example": "field"}}
+    }}
+  ]
+}}
+
+request_body should be null (not an object) for GET and DELETE endpoints without a body.
+Respond with ONLY the JSON object, nothing else."""
+
+
+def generate_api_spec(description: str, functional_requirements: list) -> dict:
+    prompt = API_SPEC_PROMPT_TEMPLATE.format(
+        description=description,
+        requirements="\n".join(f"- {r}" for r in functional_requirements),
+    )
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "You are a precise backend API architect that only outputs valid JSON."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3,
+    )
+
+    raw_text = response.choices[0].message.content.strip()
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text, flags=re.MULTILINE).strip()
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"AI returned invalid JSON: {e}\nRaw response: {raw_text[:500]}")

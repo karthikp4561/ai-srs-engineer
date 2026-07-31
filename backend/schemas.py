@@ -78,6 +78,26 @@ class DiagramResult(BaseModel):
     er_diagram: str
 
 
+class ApiEndpoint(BaseModel):
+    method: str
+    path: str
+    description: str
+    request_body: Optional[dict] = None
+    response_body: Optional[dict] = None
+
+
+class ApiEndpoint(BaseModel):
+    method: str
+    path: str
+    description: str
+    request_body: Optional[dict] = None
+    response_body: Optional[dict] = None
+
+
+class ApiSpecResult(BaseModel):
+    endpoints: List[ApiEndpoint]
+
+
 class ProjectOut(BaseModel):
     id: int
     title: str
@@ -85,6 +105,7 @@ class ProjectOut(BaseModel):
     status: str
     analysis_json: Optional[str] = None
     diagrams_json: Optional[str] = None
+    api_spec_json: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

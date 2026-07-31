@@ -8,7 +8,7 @@ from schemas import ProjectCreate, ProjectUpdate, ProjectOut
 from dependencies import get_current_user
 
 import json
-from ai_service import analyze_project_description, generate_diagrams, generate_api_spec
+from ai_service import analyze_project_description, generate_diagrams, generate_api_spec, generate_tech_stack
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -166,6 +166,36 @@ def create_api_spec(
         raise HTTPException(status_code=502, detail=f"API spec generation failed: {str(e)}")
 
     project.api_spec_json = json.dumps(api_spec)
+    db.commit()
+    db.refresh(project)
+    return project
+
+@router.post("/{project_id}/tech-stack", response_model=ProjectOut)
+def create_tech_stack(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project = db.query(Project).filter(
+        Project.id == project_id, Project.user_id == current_user.id
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if not project.analysis_json:
+        raise HTTPException(status_code=400, detail="Project must be analyzed before generating tech stack recommendations")
+
+    analysis = json.loads(project.analysis_json)
+
+    try:
+        tech_stack = generate_tech_stack(
+            description=project.description,
+            non_functional_requirements=analysis.get("non_functional_requirements", []),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Tech stack generation failed: {str(e)}")
+
+    project.tech_stack_json = json.dumps(tech_stack)
     db.commit()
     db.refresh(project)
     return project

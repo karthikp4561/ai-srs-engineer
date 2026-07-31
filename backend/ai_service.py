@@ -167,3 +167,54 @@ def generate_api_spec(description: str, functional_requirements: list) -> dict:
         return json.loads(cleaned)
     except json.JSONDecodeError as e:
         raise ValueError(f"AI returned invalid JSON: {e}\nRaw response: {raw_text[:500]}")
+
+TECH_STACK_PROMPT_TEMPLATE = """You are a senior software architect. Based on this project, recommend a suitable technology stack.
+
+Project Description:
+\"\"\"
+{description}
+\"\"\"
+
+Non-Functional Requirements:
+{nfr}
+
+Recommend technologies across these categories: frontend, backend, database, cloud_deployment, third_party_integrations.
+For each recommendation, give the technology name and a brief reason it fits this specific project.
+
+Return ONLY a valid JSON object (no markdown, no code fences, no explanation) with exactly this structure:
+
+{{
+  "frontend": {{"technology": "name", "reason": "why it fits"}},
+  "backend": {{"technology": "name", "reason": "why it fits"}},
+  "database": {{"technology": "name", "reason": "why it fits"}},
+  "cloud_deployment": {{"technology": "name", "reason": "why it fits"}},
+  "third_party_integrations": [
+    {{"technology": "name", "reason": "why it fits"}}
+  ]
+}}
+
+third_party_integrations should have 2-4 items. Respond with ONLY the JSON object, nothing else."""
+
+
+def generate_tech_stack(description: str, non_functional_requirements: list) -> dict:
+    prompt = TECH_STACK_PROMPT_TEMPLATE.format(
+        description=description,
+        nfr="\n".join(f"- {r}" for r in non_functional_requirements),
+    )
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "You are a precise software architect that only outputs valid JSON."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3,
+    )
+
+    raw_text = response.choices[0].message.content.strip()
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text, flags=re.MULTILINE).strip()
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"AI returned invalid JSON: {e}\nRaw response: {raw_text[:500]}")

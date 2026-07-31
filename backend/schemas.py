@@ -77,15 +77,6 @@ class DiagramResult(BaseModel):
     class_diagram: str
     er_diagram: str
 
-
-class ApiEndpoint(BaseModel):
-    method: str
-    path: str
-    description: str
-    request_body: Optional[dict] = None
-    response_body: Optional[dict] = None
-
-
 class ApiEndpoint(BaseModel):
     method: str
     path: str
@@ -97,6 +88,18 @@ class ApiEndpoint(BaseModel):
 class ApiSpecResult(BaseModel):
     endpoints: List[ApiEndpoint]
 
+class TechRecommendation(BaseModel):
+    technology: str
+    reason: str
+
+
+class TechStackResult(BaseModel):
+    frontend: TechRecommendation
+    backend: TechRecommendation
+    database: TechRecommendation
+    cloud_deployment: TechRecommendation
+    third_party_integrations: List[TechRecommendation]
+
 
 class ProjectOut(BaseModel):
     id: int
@@ -106,6 +109,7 @@ class ProjectOut(BaseModel):
     analysis_json: Optional[str] = None
     diagrams_json: Optional[str] = None
     api_spec_json: Optional[str] = None
+    tech_stack_json: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

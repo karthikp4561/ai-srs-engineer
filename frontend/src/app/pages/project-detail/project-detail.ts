@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult } from '../../services/project';
+import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult } from '../../services/project';
 import mermaid from 'mermaid';
 
 @Component({
@@ -16,10 +16,12 @@ export class ProjectDetail implements OnInit {
   analysis: AnalysisResult | null = null;
   diagrams: DiagramResult | null = null;
   apiSpec: ApiSpecResult | null = null;
+  techStack: TechStackResult | null = null;
   isLoading = true;
   isAnalyzing = false;
   isGeneratingDiagrams = false;
   isGeneratingApiSpec = false;
+  isGeneratingTechStack = false;
   errorMessage = '';
   diagramsRendered = false;
 
@@ -44,6 +46,7 @@ export class ProjectDetail implements OnInit {
         this.parseAnalysis();
         this.parseDiagrams();
         this.parseApiSpec();
+        this.parseTechStack();
         this.isLoading = false;
         this.cdr.detectChanges();
         this.renderDiagrams();
@@ -129,6 +132,32 @@ export class ProjectDetail implements OnInit {
     },
     error: (err) => {
       this.isGeneratingApiSpec = false;
+      this.errorMessage = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+parseTechStack() {
+  if (this.project?.tech_stack_json) {
+    this.techStack = JSON.parse(this.project.tech_stack_json);
+  }
+}
+
+runTechStackGeneration() {
+  if (!this.project) return;
+  this.isGeneratingTechStack = true;
+  this.errorMessage = '';
+
+  this.projectService.generateTechStack(this.project.id).subscribe({
+    next: (data) => {
+      this.project = data;
+      this.parseTechStack();
+      this.isGeneratingTechStack = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isGeneratingTechStack = false;
       this.errorMessage = this.extractErrorMessage(err);
       this.cdr.detectChanges();
     }

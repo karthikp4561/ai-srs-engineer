@@ -30,6 +30,19 @@ export interface ApiSpecResult {
   endpoints: ApiEndpoint[];
 }
 
+export interface TechRecommendation {
+  technology: string;
+  reason: string;
+}
+
+export interface TechStackResult {
+  frontend: TechRecommendation;
+  backend: TechRecommendation;
+  database: TechRecommendation;
+  cloud_deployment: TechRecommendation;
+  third_party_integrations: TechRecommendation[];
+}
+
 export interface Project {
   id: number;
   title: string;
@@ -38,6 +51,7 @@ export interface Project {
   analysis_json: string | null;
   diagrams_json: string | null;
   api_spec_json: string | null;
+  tech_stack_json: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -81,5 +95,9 @@ export class ProjectService {
 
   generateApiSpec(id: number): Observable<Project> {
   return this.http.post<Project>(`${this.apiUrl}/${id}/api-spec`, {});
+  }
+
+  generateTechStack(id: number): Observable<Project> {
+  return this.http.post<Project>(`${this.apiUrl}/${id}/tech-stack`, {});
   }
 }

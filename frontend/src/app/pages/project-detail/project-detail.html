@@ -131,5 +131,46 @@
         </div>
       </div>
     </div>
+
+    <div *ngIf="analysis" class="tech-section">
+      <div class="section-header-row">
+        <h2>Technology Stack</h2>
+        <button *ngIf="!techStack" class="btn-primary" (click)="runTechStackGeneration()" [disabled]="isGeneratingTechStack">
+          {{ isGeneratingTechStack ? 'Generating…' : 'Recommend tech stack' }}
+        </button>
+        <button *ngIf="techStack" class="btn-secondary" (click)="runTechStackGeneration()" [disabled]="isGeneratingTechStack">
+          {{ isGeneratingTechStack ? 'Regenerating…' : 'Regenerate recommendations' }}
+        </button>
+      </div>
+      <div *ngIf="techStack" class="tech-grid">
+        <div class="tech-card">
+          <span class="tech-category">Frontend</span>
+          <h4>{{ techStack.frontend.technology }}</h4>
+          <p>{{ techStack.frontend.reason }}</p>
+        </div>
+        <div class="tech-card">
+          <span class="tech-category">Backend</span>
+          <h4>{{ techStack.backend.technology }}</h4>
+          <p>{{ techStack.backend.reason }}</p>
+        </div>
+        <div class="tech-card">
+          <span class="tech-category">Database</span>
+          <h4>{{ techStack.database.technology }}</h4>
+          <p>{{ techStack.database.reason }}</p>
+        </div>
+        <div class="tech-card">
+          <span class="tech-category">Cloud Deployment</span>
+          <h4>{{ techStack.cloud_deployment.technology }}</h4>
+          <p>{{ techStack.cloud_deployment.reason }}</p>
+        </div>
+      </div>
+      <div *ngIf="techStack" class="integrations-block">
+        <span class="block-label">Third-Party Integrations</span>
+        <div class="integration-row" *ngFor="let item of techStack.third_party_integrations">
+          <strong>{{ item.technology }}</strong>
+          <p>{{ item.reason }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

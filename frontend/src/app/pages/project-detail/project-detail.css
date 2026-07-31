@@ -111,3 +111,15 @@
 .body-block { background: var(--paper); border-radius: 3px; padding: 0.6rem 0.8rem; overflow-x: auto; }
 .body-label { display: block; font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 0.3rem; }
 .body-block pre { margin: 0; font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink); white-space: pre-wrap; word-break: break-word; }
+
+.tech-section { margin-top: 2.2rem; border-top: 1px solid var(--grid-line); padding-top: 1.6rem; }
+.tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.4rem; }
+.tech-card { background: var(--paper-raised); border: 1px solid var(--grid-line); border-top: 3px solid var(--blueprint); border-radius: var(--radius); padding: 1.1rem 1.2rem; }
+.tech-category { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); }
+.tech-card h4 { font-size: 1.05rem; margin: 0.4rem 0 0.5rem 0; color: var(--ink); font-family: var(--font-display); }
+.tech-card p { font-size: 0.85rem; color: var(--ink-soft); margin: 0; line-height: 1.5; }
+.integrations-block { background: var(--paper-raised); border: 1px solid var(--grid-line); border-radius: var(--radius); padding: 1.2rem 1.4rem; }
+.integration-row { padding: 0.7rem 0; border-bottom: 1px solid var(--grid-line); }
+.integration-row:last-child { border-bottom: none; }
+.integration-row strong { font-size: 0.92rem; color: var(--ink); }
+.integration-row p { font-size: 0.85rem; color: var(--ink-soft); margin: 0.2rem 0 0 0; }

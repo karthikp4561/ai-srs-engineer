@@ -18,6 +18,18 @@ export interface DiagramResult {
   er_diagram: string;
 }
 
+export interface ApiEndpoint {
+  method: string;
+  path: string;
+  description: string;
+  request_body: any;
+  response_body: any;
+}
+
+export interface ApiSpecResult {
+  endpoints: ApiEndpoint[];
+}
+
 export interface Project {
   id: number;
   title: string;
@@ -25,6 +37,7 @@ export interface Project {
   status: string;
   analysis_json: string | null;
   diagrams_json: string | null;
+  api_spec_json: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -64,5 +77,9 @@ export class ProjectService {
 
   generateDiagrams(id: number): Observable<Project> {
     return this.http.post<Project>(`${this.apiUrl}/${id}/diagrams`, {});
+  }
+
+  generateApiSpec(id: number): Observable<Project> {
+  return this.http.post<Project>(`${this.apiUrl}/${id}/api-spec`, {});
   }
 }

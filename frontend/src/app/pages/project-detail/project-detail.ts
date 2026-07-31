@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProjectService, Project, AnalysisResult, DiagramResult } from '../../services/project';
+import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult } from '../../services/project';
 import mermaid from 'mermaid';
 
 @Component({
@@ -15,9 +15,11 @@ export class ProjectDetail implements OnInit {
   project: Project | null = null;
   analysis: AnalysisResult | null = null;
   diagrams: DiagramResult | null = null;
+  apiSpec: ApiSpecResult | null = null;
   isLoading = true;
   isAnalyzing = false;
   isGeneratingDiagrams = false;
+  isGeneratingApiSpec = false;
   errorMessage = '';
   diagramsRendered = false;
 
@@ -41,6 +43,7 @@ export class ProjectDetail implements OnInit {
         this.project = data;
         this.parseAnalysis();
         this.parseDiagrams();
+        this.parseApiSpec();
         this.isLoading = false;
         this.cdr.detectChanges();
         this.renderDiagrams();
@@ -64,6 +67,12 @@ export class ProjectDetail implements OnInit {
       this.diagrams = JSON.parse(this.project.diagrams_json);
     }
   }
+
+  parseApiSpec() {
+  if (this.project?.api_spec_json) {
+    this.apiSpec = JSON.parse(this.project.api_spec_json);
+  }
+}
 
   runAnalysis() {
     if (!this.project) return;
@@ -105,6 +114,26 @@ export class ProjectDetail implements OnInit {
       }
     });
   }
+
+  runApiSpecGeneration() {
+  if (!this.project) return;
+  this.isGeneratingApiSpec = true;
+  this.errorMessage = '';
+
+  this.projectService.generateApiSpec(this.project.id).subscribe({
+    next: (data) => {
+      this.project = data;
+      this.parseApiSpec();
+      this.isGeneratingApiSpec = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isGeneratingApiSpec = false;
+      this.errorMessage = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
 
   private async renderDiagrams() {
     if (!this.diagrams) return;

@@ -99,5 +99,37 @@
         <div id="er-diagram" class="diagram-canvas"></div>
       </div>
     </div>
+
+    <div *ngIf="analysis" class="api-section">
+      <div class="section-header-row">
+        <h2>API Specification</h2>
+        <button *ngIf="!apiSpec" class="btn-primary" (click)="runApiSpecGeneration()" [disabled]="isGeneratingApiSpec">
+          {{ isGeneratingApiSpec ? 'Generating…' : 'Generate API spec' }}
+        </button>
+        <button *ngIf="apiSpec" class="btn-secondary" (click)="runApiSpecGeneration()" [disabled]="isGeneratingApiSpec">
+          {{ isGeneratingApiSpec ? 'Regenerating…' : 'Regenerate API spec' }}
+        </button>
+      </div>
+      
+      <div *ngIf="apiSpec" class="endpoint-list">
+        <div class="endpoint-row" *ngFor="let ep of apiSpec.endpoints">
+          <div class="endpoint-summary">
+            <span class="method-badge" [ngClass]="'method-' + ep.method.toLowerCase()">{{ ep.method }}</span>
+            <span class="endpoint-path">{{ ep.path }}</span>
+          </div>
+          <p class="endpoint-desc">{{ ep.description }}</p>
+          <div class="endpoint-bodies" *ngIf="ep.request_body || ep.response_body">
+            <div class="body-block" *ngIf="ep.request_body">
+              <span class="body-label">Request</span>
+              <pre>{{ ep.request_body | json }}</pre>
+            </div>
+            <div class="body-block" *ngIf="ep.response_body">
+              <span class="body-label">Response</span>
+              <pre>{{ ep.response_body | json }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

@@ -172,5 +172,71 @@
         </div>
       </div>
     </div>
+
+    <div *ngIf="analysis" class="planning-section">
+      <div class="section-header-row">
+        <h2>Project Planning</h2>
+        <button *ngIf="!planning" class="btn-primary" (click)="runPlanningGeneration()" [disabled]="isGeneratingPlanning">
+          {{ isGeneratingPlanning ? 'Generating…' : 'Generate project plan' }}
+        </button>
+        <button *ngIf="planning" class="btn-secondary" (click)="runPlanningGeneration()" [disabled]="isGeneratingPlanning">
+          {{ isGeneratingPlanning ? 'Regenerating…' : 'Regenerate plan' }}
+        </button>
+      </div>
+      
+      <div *ngIf="planning">
+        <div class="duration-banner">
+          <span class="duration-num">{{ planning.estimated_duration_weeks }}</span>
+          <span class="duration-label">weeks estimated</span>
+        </div>
+        
+        <div class="plan-subsection">
+          <span class="block-label">Phases</span>
+          <div class="phase-row" *ngFor="let phase of planning.phases">
+            <span class="phase-weeks">{{ phase.duration_weeks }}w</span>
+            <div>
+              <strong>{{ phase.name }}</strong>
+              <p>{{ phase.description }}</p>
+            </div>
+          </div>
+        </div>
+        
+        
+        <div class="plan-subsection">
+          <span class="block-label">Sprints</span>
+          <div class="sprint-card" *ngFor="let sprint of planning.sprints">
+            <div class="sprint-header">
+              <strong>{{ sprint.name }}</strong>
+              <span class="sprint-weeks">{{ sprint.duration_weeks }} weeks</span>
+            </div>
+            <ul>
+              <li *ngFor="let goal of sprint.goals">{{ goal }}</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="plan-subsection">
+          <span class="block-label">Milestones</span>
+          <div class="milestone-track">
+            <div class="milestone-point" *ngFor="let m of planning.milestones">
+              <span class="milestone-dot"></span>
+              <strong>{{ m.name }}</strong>
+              <p>{{ m.description }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="plan-subsection">
+          <span class="block-label">Risks</span>
+          <div class="risk-row" *ngFor="let r of planning.risks">
+            <span class="impact-badge" [ngClass]="impactClass(r.impact)">{{ r.impact }}</span>
+            <div>
+              <strong>{{ r.risk }}</strong>
+              <p>{{ r.mitigation }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

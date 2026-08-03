@@ -101,6 +101,37 @@ class TechStackResult(BaseModel):
     third_party_integrations: List[TechRecommendation]
 
 
+class ProjectPhase(BaseModel):
+    name: str
+    duration_weeks: int
+    description: str
+
+
+class Sprint(BaseModel):
+    name: str
+    duration_weeks: int
+    goals: List[str]
+
+
+class Milestone(BaseModel):
+    name: str
+    description: str
+
+
+class Risk(BaseModel):
+    risk: str
+    impact: str
+    mitigation: str
+
+
+class PlanningResult(BaseModel):
+    estimated_duration_weeks: int
+    phases: List[ProjectPhase]
+    sprints: List[Sprint]
+    milestones: List[Milestone]
+    risks: List[Risk]
+
+
 class ProjectOut(BaseModel):
     id: int
     title: str
@@ -110,6 +141,7 @@ class ProjectOut(BaseModel):
     diagrams_json: Optional[str] = None
     api_spec_json: Optional[str] = None
     tech_stack_json: Optional[str] = None
+    planning_json: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

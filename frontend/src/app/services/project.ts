@@ -52,6 +52,7 @@ export interface Project {
   diagrams_json: string | null;
   api_spec_json: string | null;
   tech_stack_json: string | null;
+  planning_json: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -59,6 +60,37 @@ export interface Project {
 export interface ProjectCreate {
   title: string;
   description: string;
+}
+
+export interface ProjectPhase {
+  name: string;
+  duration_weeks: number;
+  description: string;
+}
+
+export interface Sprint {
+  name: string;
+  duration_weeks: number;
+  goals: string[];
+}
+
+export interface Milestone {
+  name: string;
+  description: string;
+}
+
+export interface Risk {
+  risk: string;
+  impact: string;
+  mitigation: string;
+}
+
+export interface PlanningResult {
+  estimated_duration_weeks: number;
+  phases: ProjectPhase[];
+  sprints: Sprint[];
+  milestones: Milestone[];
+  risks: Risk[];
 }
 
 @Injectable({
@@ -100,4 +132,9 @@ export class ProjectService {
   generateTechStack(id: number): Observable<Project> {
   return this.http.post<Project>(`${this.apiUrl}/${id}/tech-stack`, {});
   }
+
+  generatePlanning(id: number): Observable<Project> {
+  return this.http.post<Project>(`${this.apiUrl}/${id}/planning`, {});
+  }
 }
+

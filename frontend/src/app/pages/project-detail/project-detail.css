@@ -123,3 +123,30 @@
 .integration-row:last-child { border-bottom: none; }
 .integration-row strong { font-size: 0.92rem; color: var(--ink); }
 .integration-row p { font-size: 0.85rem; color: var(--ink-soft); margin: 0.2rem 0 0 0; }
+
+.planning-section { margin-top: 2.2rem; border-top: 1px solid var(--grid-line); padding-top: 1.6rem; }
+.duration-banner { display: flex; align-items: baseline; gap: 0.6rem; background: var(--ink); color: #fff; border-radius: var(--radius); padding: 1.2rem 1.4rem; margin-bottom: 1.6rem; }
+.duration-num { font-family: var(--font-display); font-size: 2rem; font-weight: 700; }
+.duration-label { font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.05em; }
+.plan-subsection { margin-bottom: 1.8rem; }
+.phase-row { display: flex; gap: 1rem; padding: 0.7rem 0; border-bottom: 1px solid var(--grid-line); }
+.phase-row:last-child { border-bottom: none; }
+.phase-weeks { font-family: var(--font-mono); font-size: 0.78rem; color: var(--blueprint); flex-shrink: 0; width: 32px; }
+.phase-row strong { font-size: 0.92rem; color: var(--ink); }
+.phase-row p, .sprint-card p, .milestone-point p, .risk-row p { font-size: 0.85rem; color: var(--ink-soft); margin: 0.2rem 0 0 0; line-height: 1.5; }
+.sprint-card { background: var(--paper-raised); border: 1px solid var(--grid-line); border-radius: var(--radius); padding: 1rem 1.2rem; margin-bottom: 0.8rem; }
+.sprint-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.sprint-weeks { font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-soft); }
+.sprint-card ul { margin: 0; padding-left: 1.1rem; }
+.sprint-card li { font-size: 0.85rem; color: var(--ink); margin-bottom: 0.3rem; }
+.milestone-track { display: flex; flex-direction: column; gap: 0; position: relative; padding-left: 1.4rem; border-left: 2px solid var(--grid-line); }
+.milestone-point { position: relative; padding-bottom: 1.2rem; }
+.milestone-dot { position: absolute; left: -1.85rem; top: 0.25rem; width: 10px; height: 10px; border-radius: 50%; background: var(--teal); }
+.milestone-point strong { font-size: 0.9rem; color: var(--ink); }
+.risk-row { display: flex; gap: 1rem; padding: 0.8rem 0; border-bottom: 1px solid var(--grid-line); align-items: flex-start; }
+.risk-row:last-child { border-bottom: none; }
+.risk-row strong { font-size: 0.9rem; color: var(--ink); }
+.impact-badge { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 3px; flex-shrink: 0; width: 60px; text-align: center; color: #fff; }
+.impact-high { background: var(--danger); }
+.impact-medium { background: var(--amber); }
+.impact-low { background: var(--teal); }

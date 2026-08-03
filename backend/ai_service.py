@@ -218,3 +218,69 @@ def generate_tech_stack(description: str, non_functional_requirements: list) -> 
         return json.loads(cleaned)
     except json.JSONDecodeError as e:
         raise ValueError(f"AI returned invalid JSON: {e}\nRaw response: {raw_text[:500]}")
+
+PLANNING_PROMPT_TEMPLATE = """You are a senior project manager. Based on this project, create a development plan.
+
+Project Description:
+\"\"\"
+{description}
+\"\"\"
+
+Functional Requirements:
+{requirements}
+
+Constraints:
+{constraints}
+
+Create a realistic project plan including:
+1. An overall estimated timeline (in weeks) broken into phases
+2. 3-5 sprints, each with a name, duration in weeks, and a list of goals for that sprint
+3. 3-5 key milestones with a short description
+4. 3-5 project risks, each with the risk, its likely impact, and a mitigation strategy
+
+Return ONLY a valid JSON object (no markdown, no code fences, no explanation) with exactly this structure:
+
+{{
+  "estimated_duration_weeks": 12,
+  "phases": [
+    {{"name": "phase name", "duration_weeks": 2, "description": "what happens in this phase"}}
+  ],
+  "sprints": [
+    {{"name": "Sprint 1", "duration_weeks": 2, "goals": ["goal 1", "goal 2"]}}
+  ],
+  "milestones": [
+    {{"name": "milestone name", "description": "what this milestone represents"}}
+  ],
+  "risks": [
+    {{"risk": "description of risk", "impact": "High/Medium/Low", "mitigation": "how to mitigate it"}}
+  ]
+}}
+
+Respond with ONLY the JSON object, nothing else."""
+
+
+def generate_project_plan(description: str, functional_requirements: list, constraints: list) -> dict:
+    prompt = PLANNING_PROMPT_TEMPLATE.format(
+        description=description,
+        requirements="\n".join(f"- {r}" for r in functional_requirements),
+        constraints="\n".join(f"- {c}" for c in constraints),
+    )
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "You are a precise project manager that only outputs valid JSON."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3,
+    )
+
+    raw_text = response.choices[0].message.content.strip()
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text, flags=re.MULTILINE).strip()
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"AI returned invalid JSON: {e}\nRaw response: {raw_text[:500]}")
+
+    

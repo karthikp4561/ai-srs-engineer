@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult } from '../../services/project';
+import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult, PlanningResult } from '../../services/project';
 import mermaid from 'mermaid';
 
 @Component({
@@ -17,11 +17,13 @@ export class ProjectDetail implements OnInit {
   diagrams: DiagramResult | null = null;
   apiSpec: ApiSpecResult | null = null;
   techStack: TechStackResult | null = null;
+  planning: PlanningResult | null = null;
   isLoading = true;
   isAnalyzing = false;
   isGeneratingDiagrams = false;
   isGeneratingApiSpec = false;
   isGeneratingTechStack = false;
+  isGeneratingPlanning = false;
   errorMessage = '';
   diagramsRendered = false;
 
@@ -47,6 +49,7 @@ export class ProjectDetail implements OnInit {
         this.parseDiagrams();
         this.parseApiSpec();
         this.parseTechStack();
+        this.parsePlanning();
         this.isLoading = false;
         this.cdr.detectChanges();
         this.renderDiagrams();
@@ -196,4 +199,38 @@ runTechStackGeneration() {
     }
     return 'Something went wrong. Please try again.';
   }
+
+  parsePlanning() {
+  if (this.project?.planning_json) {
+    this.planning = JSON.parse(this.project.planning_json);
+  }
 }
+
+runPlanningGeneration() {
+  if (!this.project) return;
+  this.isGeneratingPlanning = true;
+  this.errorMessage = '';
+
+  this.projectService.generatePlanning(this.project.id).subscribe({
+    next: (data) => {
+      this.project = data;
+      this.parsePlanning();
+      this.isGeneratingPlanning = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isGeneratingPlanning = false;
+      this.errorMessage = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+impactClass(impact: string): string {
+  const i = impact.toLowerCase();
+  if (i === 'high') return 'impact-high';
+  if (i === 'medium') return 'impact-medium';
+  return 'impact-low';
+}
+}
+

@@ -37,7 +37,7 @@ def analyze_project_description(description: str) -> dict:
     prompt = ANALYSIS_PROMPT_TEMPLATE.format(description=description)
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "You are a precise software business analyst that only outputs valid JSON."},
             {"role": "user", "content": prompt}
@@ -92,7 +92,7 @@ def generate_diagrams(description: str, functional_requirements: list, target_us
     )
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "You are a precise software architect that only outputs valid JSON containing Mermaid.js diagram syntax."},
             {"role": "user", "content": prompt}
@@ -152,7 +152,7 @@ def generate_api_spec(description: str, functional_requirements: list) -> dict:
     )
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "You are a precise backend API architect that only outputs valid JSON."},
             {"role": "user", "content": prompt}
@@ -203,7 +203,7 @@ def generate_tech_stack(description: str, non_functional_requirements: list) -> 
     )
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "You are a precise software architect that only outputs valid JSON."},
             {"role": "user", "content": prompt}
@@ -267,7 +267,7 @@ def generate_project_plan(description: str, functional_requirements: list, const
     )
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "You are a precise project manager that only outputs valid JSON."},
             {"role": "user", "content": prompt}

@@ -10,6 +10,9 @@ from dependencies import get_current_user
 import json
 from ai_service import analyze_project_description, generate_diagrams, generate_api_spec, generate_tech_stack, generate_project_plan
 
+from fastapi.responses import StreamingResponse
+from export_service import generate_pdf, generate_docx
+
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 @router.post("/", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
@@ -230,3 +233,44 @@ def create_project_plan(
     db.commit()
     db.refresh(project)
     return project
+
+@router.get("/{project_id}/export/pdf")
+def export_pdf(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project = db.query(Project).filter(
+        Project.id == project_id, Project.user_id == current_user.id
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    buffer = generate_pdf(project)
+    filename = f"{project.title.replace(' ', '_')}_SRS.pdf"
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+@router.get("/{project_id}/export/docx")
+def export_docx(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project = db.query(Project).filter(
+        Project.id == project_id, Project.user_id == current_user.id
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    buffer = generate_docx(project)
+    filename = f"{project.title.replace(' ', '_')}_SRS.docx"
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )

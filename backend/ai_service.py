@@ -102,16 +102,24 @@ def generate_diagrams(description: str, functional_requirements: list, target_us
 
     raw_text = response.choices[0].message.content.strip()
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text, flags=re.MULTILINE).strip()
-
     try:
         result = json.loads(cleaned)
     except json.JSONDecodeError as e:
         raise ValueError(f"AI returned invalid JSON: {e}\nRaw response: {raw_text[:500]}")
 
-    # Fix a common Mermaid syntax mistake the AI makes: "|>" instead of "|"
+    def fix_unlabeled_nodes(code: str) -> str:
+        counter = {"n": 0}
+        def repl(m):
+            counter["n"] += 1
+            return f"{m.group(1)}AutoNode{counter['n']}("
+        return re.sub(r'(-->\s*)\(', repl, code)
+
     for key in ("use_case_diagram", "class_diagram", "er_diagram"):
         if key in result:
             result[key] = re.sub(r'\|>', '|', result[key])
+
+    if "use_case_diagram" in result:
+        result["use_case_diagram"] = fix_unlabeled_nodes(result["use_case_diagram"])
 
     return result
 

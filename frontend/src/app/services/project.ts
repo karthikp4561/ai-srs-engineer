@@ -126,15 +126,42 @@ export class ProjectService {
   }
 
   generateApiSpec(id: number): Observable<Project> {
-  return this.http.post<Project>(`${this.apiUrl}/${id}/api-spec`, {});
+    return this.http.post<Project>(`${this.apiUrl}/${id}/api-spec`, {});
   }
 
   generateTechStack(id: number): Observable<Project> {
-  return this.http.post<Project>(`${this.apiUrl}/${id}/tech-stack`, {});
+    return this.http.post<Project>(`${this.apiUrl}/${id}/tech-stack`, {});
   }
 
   generatePlanning(id: number): Observable<Project> {
-  return this.http.post<Project>(`${this.apiUrl}/${id}/planning`, {});
+    return this.http.post<Project>(`${this.apiUrl}/${id}/planning`, {});
+  }
+
+  getExportUrl(id: number, format: 'pdf' | 'docx'): string {
+    return `${this.apiUrl}/${id}/export/${format}`;
+  }
+
+  downloadExport(id: number, format: 'pdf' | 'docx', title: string): void {
+    const token = localStorage.getItem('access_token');
+    fetch(this.getExportUrl(id, format), {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Export failed');
+        return res.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.replace(/\s+/g, '_')}_SRS.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(err => console.error('Download failed', err));
   }
 }
+
 

@@ -8,6 +8,15 @@
       <h1>{{ project.title }}</h1>
       <span class="status-badge">{{ project.status }}</span>
     </div>
+  
+    <div class="export-actions">
+  <button class="btn-secondary" (click)="exportPdf()" [disabled]="isExportingPdf">
+    {{ isExportingPdf ? 'Preparing PDF…' : '⬇ Export PDF' }}
+  </button>
+  <button class="btn-secondary" (click)="exportDocx()" [disabled]="isExportingDocx">
+    {{ isExportingDocx ? 'Preparing Word…' : '⬇ Export Word' }}
+  </button>
+    </div>
 
     <div class="section">
       <h3>Description</h3>

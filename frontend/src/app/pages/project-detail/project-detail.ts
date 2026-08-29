@@ -26,6 +26,8 @@ export class ProjectDetail implements OnInit {
   isGeneratingPlanning = false;
   errorMessage = '';
   diagramsRendered = false;
+  isExportingPdf = false;
+  isExportingDocx = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -231,6 +233,20 @@ impactClass(impact: string): string {
   if (i === 'high') return 'impact-high';
   if (i === 'medium') return 'impact-medium';
   return 'impact-low';
+}
+
+exportPdf() {
+  if (!this.project) return;
+  this.isExportingPdf = true;
+  this.projectService.downloadExport(this.project.id, 'pdf', this.project.title);
+  setTimeout(() => { this.isExportingPdf = false; this.cdr.detectChanges(); }, 1500);
+}
+
+exportDocx() {
+  if (!this.project) return;
+  this.isExportingDocx = true;
+  this.projectService.downloadExport(this.project.id, 'docx', this.project.title);
+  setTimeout(() => { this.isExportingDocx = false; this.cdr.detectChanges(); }, 1500);
 }
 }
 

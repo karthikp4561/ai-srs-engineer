@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from database import get_db
-from models import Project, User
+from models import Project, User, AIUsageLog
 from schemas import ProjectCreate, ProjectUpdate, ProjectOut
 from dependencies import get_current_user
 
@@ -108,6 +108,7 @@ def analyze_project(
 
     project.analysis_json = json.dumps(result)
     project.status = "analyzed"
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="analyze"))
     db.commit()
     db.refresh(project)
     return project
@@ -139,6 +140,7 @@ def create_diagrams(
         raise HTTPException(status_code=502, detail=f"Diagram generation failed: {str(e)}")
 
     project.diagrams_json = json.dumps(diagrams)
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="diagrams"))
     db.commit()
     db.refresh(project)
     return project
@@ -169,6 +171,7 @@ def create_api_spec(
         raise HTTPException(status_code=502, detail=f"API spec generation failed: {str(e)}")
 
     project.api_spec_json = json.dumps(api_spec)
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="api_spec"))
     db.commit()
     db.refresh(project)
     return project
@@ -199,6 +202,7 @@ def create_tech_stack(
         raise HTTPException(status_code=502, detail=f"Tech stack generation failed: {str(e)}")
 
     project.tech_stack_json = json.dumps(tech_stack)
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="tech_stack"))
     db.commit()
     db.refresh(project)
     return project
@@ -230,6 +234,7 @@ def create_project_plan(
         raise HTTPException(status_code=502, detail=f"Project plan generation failed: {str(e)}")
 
     project.planning_json = json.dumps(plan)
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="plan"))
     db.commit()
     db.refresh(project)
     return project

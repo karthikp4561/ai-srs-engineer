@@ -1,0 +1,22 @@
+.tab-row { display: flex; gap: 0.4rem; margin-bottom: 1.6rem; border-bottom: 1px solid var(--grid-line); }
+.tab-btn { background: none; border: none; padding: 0.7rem 1.1rem; font-family: var(--font-body); font-weight: 600; font-size: 0.9rem; color: var(--ink-soft); cursor: pointer; border-bottom: 2px solid transparent; }
+.tab-btn.active { color: var(--ink); border-bottom-color: var(--blueprint); }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.6rem; }
+.stat-card { background: var(--paper-raised); border: 1px solid var(--grid-line); border-top: 3px solid var(--blueprint); border-radius: var(--radius); padding: 1.1rem 1.2rem; }
+.stat-value { display: block; font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--ink); }
+.stat-name { font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--ink-soft); letter-spacing: 0.05em; }
+.panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+.panel { padding: 1.2rem 1.4rem; }
+.bar-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--grid-line); font-size: 0.88rem; }
+.bar-row:last-child { border-bottom: none; }
+.bar-label { text-transform: capitalize; color: var(--ink); }
+.bar-value { font-family: var(--font-mono); color: var(--blueprint); font-weight: 600; }
+.empty-note { color: var(--ink-soft); font-size: 0.85rem; font-style: italic; }
+.table-wrap { padding: 0; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th { text-align: left; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--ink-soft); letter-spacing: 0.05em; padding: 0.9rem 1.1rem; border-bottom: 2px solid var(--grid-line); }
+td { padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--grid-line); color: var(--ink); }
+.role-badge { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 3px; background: var(--paper); }
+.role-admin { background: var(--amber-soft); color: var(--amber); }
+.row-actions { display: flex; gap: 0.5rem; }
+.danger { color: var(--danger); }

@@ -1,0 +1,95 @@
+<div class="page">
+  <div class="dash-banner">
+    <div class="grid-overlay"></div>
+    <div class="banner-content">
+      <div>
+        <span class="eyebrow eyebrow-light">Admin console</span>
+        <h1>System overview</h1>
+      </div>
+      <div class="banner-actions">
+        <a routerLink="/dashboard" class="btn-ghost">← Back to app</a>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
+
+  <div *ngIf="!isLoading && analytics">
+    <div class="tab-row">
+      <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Overview</button>
+      <button class="tab-btn" [class.active]="activeTab === 'users'" (click)="setTab('users')">Users ({{ users.length }})</button>
+      <button class="tab-btn" [class.active]="activeTab === 'projects'" (click)="setTab('projects')">Projects ({{ projects.length }})</button>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div *ngIf="activeTab === 'overview'">
+      <div class="stat-grid">
+        <div class="stat-card"><span class="stat-value">{{ analytics.total_users }}</span><span class="stat-name">Total users</span></div>
+        <div class="stat-card"><span class="stat-value">{{ analytics.active_users }}</span><span class="stat-name">Active users</span></div>
+        <div class="stat-card"><span class="stat-value">{{ analytics.total_projects }}</span><span class="stat-name">Total projects</span></div>
+        <div class="stat-card"><span class="stat-value">{{ analytics.ai_calls_last_7_days }}</span><span class="stat-name">AI calls (7 days)</span></div>
+      </div>
+
+      <div class="panel-grid">
+        <div class="plate panel">
+          <span class="block-label">Projects by status</span>
+          <div class="bar-row" *ngFor="let key of statusKeys()">
+            <span class="bar-label">{{ key }}</span>
+            <span class="bar-value">{{ analytics.projects_by_status[key] }}</span>
+          </div>
+        </div>
+        <div class="plate panel">
+          <span class="block-label">AI calls by feature</span>
+          <div class="bar-row" *ngFor="let key of actionKeys()">
+            <span class="bar-label">{{ key }}</span>
+            <span class="bar-value">{{ analytics.ai_calls_by_action[key] }}</span>
+          </div>
+          <p class="empty-note" *ngIf="actionKeys().length === 0">No AI activity recorded yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div *ngIf="activeTab === 'users'" class="plate table-wrap">
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of users">
+            <td>{{ u.name }}</td>
+            <td>{{ u.email }}</td>
+            <td><span class="role-badge" [class.role-admin]="u.role === 'admin'">{{ u.role }}</span></td>
+            <td>
+              <span class="status-badge" [ngClass]="u.is_active ? 'status-analyzed' : 'status-draft'">
+                {{ u.is_active ? 'active' : 'disabled' }}
+              </span>
+            </td>
+            <td>{{ u.created_at | date:'MMM d, y' }}</td>
+            <td class="row-actions">
+              <button class="btn-ghost btn-small" (click)="toggleActive(u)">{{ u.is_active ? 'Disable' : 'Enable' }}</button>
+              <button class="btn-ghost btn-small danger" (click)="removeUser(u)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PROJECTS -->
+    <div *ngIf="activeTab === 'projects'" class="plate table-wrap">
+      <table>
+        <thead>
+          <tr><th>Title</th><th>Owner</th><th>Status</th><th>Created</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of projects">
+            <td>{{ p.title }}</td>
+            <td>{{ p.owner_email }}</td>
+            <td><span class="status-badge" [ngClass]="p.status === 'draft' ? 'status-draft' : 'status-analyzed'">{{ p.status }}</span></td>
+            <td>{{ p.created_at | date:'MMM d, y' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -7,7 +7,7 @@ from database import get_db, engine, Base
 from routers import auth
 import models
 
-from routers import auth, projects, admin
+from routers import auth, projects, admin, collaboration
 
 Base.metadata.create_all(bind=engine)
 
@@ -35,3 +35,5 @@ def db_check(db: Session = Depends(get_db)):
 app.include_router(projects.router)
 
 app.include_router(admin.router)
+
+app.include_router(collaboration.router)

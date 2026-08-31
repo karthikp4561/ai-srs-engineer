@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from database import get_db
-from models import Project, User, AIUsageLog
+from models import Project, User, AIUsageLog, ProjectCollaborator
 from schemas import ProjectCreate, ProjectUpdate, ProjectOut
 from dependencies import get_current_user
 
@@ -279,3 +279,17 @@ def export_docx(
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
+
+@router.get("/shared/with-me", response_model=List[ProjectOut])
+def list_shared_projects(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    rows = (
+        db.query(Project)
+        .join(ProjectCollaborator, Project.id == ProjectCollaborator.project_id)
+        .filter(ProjectCollaborator.user_id == current_user.id)
+        .order_by(Project.created_at.desc())
+        .all()
+    )
+    return rows

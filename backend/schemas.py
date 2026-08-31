@@ -175,3 +175,37 @@ class AnalyticsSummary(BaseModel):
     projects_by_status: dict
     ai_calls_by_action: dict
     ai_calls_last_7_days: int
+
+class CollaboratorInvite(BaseModel):
+    email: EmailStr
+    role: str = "viewer"
+
+    @field_validator('role')
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        if v not in ("owner", "editor", "viewer"):
+            raise ValueError('Role must be owner, editor, or viewer')
+        return v
+
+
+class CollaboratorRoleUpdate(BaseModel):
+    role: str
+
+    @field_validator('role')
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        if v not in ("editor", "viewer"):
+            raise ValueError('Role must be editor or viewer')
+        return v
+
+
+class CollaboratorOut(BaseModel):
+    id: int
+    user_id: int
+    name: str
+    email: EmailStr
+    role: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

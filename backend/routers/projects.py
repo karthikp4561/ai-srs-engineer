@@ -6,6 +6,7 @@ from database import get_db
 from models import Project, User, AIUsageLog, ProjectCollaborator
 from schemas import ProjectCreate, ProjectUpdate, ProjectOut
 from dependencies import get_current_user
+from collaboration_dependencies import require_viewer, require_editor, require_owner
 
 import json
 from ai_service import analyze_project_description, generate_diagrams, generate_api_spec, generate_tech_stack, generate_project_plan
@@ -14,6 +15,7 @@ from fastapi.responses import StreamingResponse
 from export_service import generate_pdf, generate_docx
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
+
 
 @router.post("/", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
 def create_project(
@@ -31,6 +33,7 @@ def create_project(
     db.refresh(new_project)
     return new_project
 
+
 @router.get("/", response_model=List[ProjectOut])
 def list_projects(
     db: Session = Depends(get_db),
@@ -38,32 +41,37 @@ def list_projects(
 ):
     return db.query(Project).filter(Project.user_id == current_user.id).order_by(Project.created_at.desc()).all()
 
-@router.get("/{project_id}", response_model=ProjectOut)
-def get_project(
-    project_id: int,
+
+# IMPORTANT: this must stay ABOVE any "/{project_id}" routes, otherwise
+# FastAPI tries to parse "shared" as an integer project_id and fails first.
+@router.get("/shared/with-me", response_model=List[ProjectOut])
+def list_shared_projects(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    project = db.query(Project).filter(
-        Project.id == project_id, Project.user_id == current_user.id
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
+    rows = (
+        db.query(Project)
+        .join(ProjectCollaborator, Project.id == ProjectCollaborator.project_id)
+        .filter(ProjectCollaborator.user_id == current_user.id)
+        .order_by(Project.created_at.desc())
+        .all()
+    )
+    return rows
+
+
+@router.get("/{project_id}", response_model=ProjectOut)
+def get_project(
+    project: Project = Depends(require_viewer),
+):
     return project
+
 
 @router.put("/{project_id}", response_model=ProjectOut)
 def update_project(
-    project_id: int,
     updates: ProjectUpdate,
+    project: Project = Depends(require_editor),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
-    project = db.query(Project).filter(
-        Project.id == project_id, Project.user_id == current_user.id
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
     if updates.title is not None:
         project.title = updates.title
     if updates.description is not None:
@@ -73,34 +81,23 @@ def update_project(
     db.refresh(project)
     return project
 
+
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_project(
-    project_id: int,
+    project: Project = Depends(require_owner),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
-    project = db.query(Project).filter(
-        Project.id == project_id, Project.user_id == current_user.id
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
     db.delete(project)
     db.commit()
     return None
 
+
 @router.post("/{project_id}/analyze", response_model=ProjectOut)
 def analyze_project(
-    project_id: int,
+    project: Project = Depends(require_editor),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    project = db.query(Project).filter(
-        Project.id == project_id, Project.user_id == current_user.id
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
     try:
         result = analyze_project_description(project.description)
     except Exception as e:
@@ -113,18 +110,13 @@ def analyze_project(
     db.refresh(project)
     return project
 
+
 @router.post("/{project_id}/diagrams", response_model=ProjectOut)
 def create_diagrams(
-    project_id: int,
+    project: Project = Depends(require_editor),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    project = db.query(Project).filter(
-        Project.id == project_id, Project.user_id == current_user.id
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
     if not project.analysis_json:
         raise HTTPException(status_code=400, detail="Project must be analyzed before generating diagrams")
 
@@ -145,18 +137,13 @@ def create_diagrams(
     db.refresh(project)
     return project
 
+
 @router.post("/{project_id}/api-spec", response_model=ProjectOut)
 def create_api_spec(
-    project_id: int,
+    project: Project = Depends(require_editor),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    project = db.query(Project).filter(
-        Project.id == project_id, Project.user_id == current_user.id
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
     if not project.analysis_json:
         raise HTTPException(status_code=400, detail="Project must be analyzed before generating an API spec")
 
@@ -176,18 +163,13 @@ def create_api_spec(
     db.refresh(project)
     return project
 
+
 @router.post("/{project_id}/tech-stack", response_model=ProjectOut)
 def create_tech_stack(
-    project_id: int,
+    project: Project = Depends(require_editor),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    project = db.query(Project).filter(
-        Project.id == project_id, Project.user_id == current_user.id
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
     if not project.analysis_json:
         raise HTTPException(status_code=400, detail="Project must be analyzed before generating tech stack recommendations")
 
@@ -207,18 +189,13 @@ def create_tech_stack(
     db.refresh(project)
     return project
 
+
 @router.post("/{project_id}/planning", response_model=ProjectOut)
 def create_project_plan(
-    project_id: int,
+    project: Project = Depends(require_editor),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    project = db.query(Project).filter(
-        Project.id == project_id, Project.user_id == current_user.id
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
     if not project.analysis_json:
         raise HTTPException(status_code=400, detail="Project must be analyzed before generating a project plan")
 
@@ -239,18 +216,11 @@ def create_project_plan(
     db.refresh(project)
     return project
 
+
 @router.get("/{project_id}/export/pdf")
 def export_pdf(
-    project_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    project: Project = Depends(require_viewer),
 ):
-    project = db.query(Project).filter(
-        Project.id == project_id, Project.user_id == current_user.id
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
     buffer = generate_pdf(project)
     filename = f"{project.title.replace(' ', '_')}_SRS.pdf"
     return StreamingResponse(
@@ -262,16 +232,8 @@ def export_pdf(
 
 @router.get("/{project_id}/export/docx")
 def export_docx(
-    project_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    project: Project = Depends(require_viewer),
 ):
-    project = db.query(Project).filter(
-        Project.id == project_id, Project.user_id == current_user.id
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
     buffer = generate_docx(project)
     filename = f"{project.title.replace(' ', '_')}_SRS.docx"
     return StreamingResponse(
@@ -279,17 +241,3 @@ def export_docx(
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
-
-@router.get("/shared/with-me", response_model=List[ProjectOut])
-def list_shared_projects(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    rows = (
-        db.query(Project)
-        .join(ProjectCollaborator, Project.id == ProjectCollaborator.project_id)
-        .filter(ProjectCollaborator.user_id == current_user.id)
-        .order_by(Project.created_at.desc())
-        .all()
-    )
-    return rows

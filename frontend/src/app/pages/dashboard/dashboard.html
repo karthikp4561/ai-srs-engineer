@@ -49,4 +49,18 @@
       </div>
     </div>
   </div>
+
+  <div *ngIf="sharedProjects.length > 0" class="shared-section">
+  <span class="eyebrow">Shared with you</span>
+  <div class="project-grid">
+    <div class="project-card plate" *ngFor="let project of sharedProjects" (click)="openProject(project.id)">
+      <div class="card-top">
+        <span class="spec-id">SPEC-{{ project.id.toString().padStart(3, '0') }}</span>
+        <span class="status-badge" [ngClass]="project.status === 'draft' ? 'status-draft' : 'status-analyzed'">{{ project.status }}</span>
+      </div>
+      <h3>{{ project.title }}</h3>
+      <p>{{ project.description.length > 120 ? (project.description | slice:0:120) + '…' : project.description }}</p>
+    </div>
+  </div>
+</div>
 </div>

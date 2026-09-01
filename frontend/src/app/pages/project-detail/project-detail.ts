@@ -1,13 +1,14 @@
 import { Component, ChangeDetectorRef, OnInit, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult, PlanningResult } from '../../services/project';
+import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult, PlanningResult, Collaborator } from '../../services/project';
 import mermaid from 'mermaid';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css'
 })
@@ -18,6 +19,7 @@ export class ProjectDetail implements OnInit {
   apiSpec: ApiSpecResult | null = null;
   techStack: TechStackResult | null = null;
   planning: PlanningResult | null = null;
+  collaborators: Collaborator[] = [];
   isLoading = true;
   isAnalyzing = false;
   isGeneratingDiagrams = false;
@@ -28,6 +30,10 @@ export class ProjectDetail implements OnInit {
   diagramsRendered = false;
   isExportingPdf = false;
   isExportingDocx = false;
+  inviteEmail = '';
+  inviteRole = 'viewer';
+  isInviting = false;
+  collabError = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -247,6 +253,53 @@ exportDocx() {
   this.isExportingDocx = true;
   this.projectService.downloadExport(this.project.id, 'docx', this.project.title);
   setTimeout(() => { this.isExportingDocx = false; this.cdr.detectChanges(); }, 1500);
+}
+
+loadCollaborators() {
+  if (!this.project) return;
+  this.projectService.getCollaborators(this.project.id).subscribe({
+    next: (data) => { this.collaborators = data; this.cdr.detectChanges(); },
+    error: () => { /* silently ignore if not owner/viewer of collaborators list */ }
+  });
+}
+
+sendInvite() {
+  if (!this.project || !this.inviteEmail) return;
+  this.isInviting = true;
+  this.collabError = '';
+  this.projectService.inviteCollaborator(this.project.id, this.inviteEmail, this.inviteRole).subscribe({
+    next: () => {
+      this.inviteEmail = '';
+      this.isInviting = false;
+      this.loadCollaborators();
+    },
+    error: (err) => {
+      this.isInviting = false;
+      this.collabError = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+changeRole(c: Collaborator, newRole: string) {
+  if (!this.project) return;
+  this.projectService.updateCollaboratorRole(this.project.id, c.id, newRole).subscribe({
+    next: (updated) => {
+      c.role = updated.role;
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+removeCollab(c: Collaborator) {
+  if (!this.project) return;
+  if (!confirm(`Remove ${c.name} from this project?`)) return;
+  this.projectService.removeCollaborator(this.project.id, c.id).subscribe({
+    next: () => {
+      this.collaborators = this.collaborators.filter(x => x.id !== c.id);
+      this.cdr.detectChanges();
+    }
+  });
 }
 }
 

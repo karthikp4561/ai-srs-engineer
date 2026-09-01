@@ -93,6 +93,15 @@ export interface PlanningResult {
   risks: Risk[];
 }
 
+export interface Collaborator {
+  id: number;
+  user_id: number;
+  name: string;
+  email: string;
+  role: string;
+  created_at: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -161,6 +170,24 @@ export class ProjectService {
         window.URL.revokeObjectURL(url);
       })
       .catch(err => console.error('Download failed', err));
+  }
+    
+  getCollaborators(projectId: number): Observable<Collaborator[]> {
+    return this.http.get<Collaborator[]>(`${this.apiUrl}/${projectId}/collaborators/`);
+  }
+  inviteCollaborator(projectId: number, email: string, role: string): Observable<Collaborator> {
+    return this.http.post<Collaborator>(`${this.apiUrl}/${projectId}/collaborators/`, { email, role });
+  }
+  updateCollaboratorRole(projectId: number, collaboratorId: number, role: string): Observable<Collaborator> {
+    return this.http.put<Collaborator>(`${this.apiUrl}/${projectId}/collaborators/${collaboratorId}`, { role });
+  }
+  
+  removeCollaborator(projectId: number, collaboratorId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${projectId}/collaborators/${collaboratorId}`);
+  }
+  
+  getSharedProjects(): Observable<Project[]> {
+    return this.http.get<Project[]>(`${this.apiUrl}/shared/with-me`);
   }
 }
 

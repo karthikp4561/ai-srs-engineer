@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult, PlanningResult, Collaborator } from '../../services/project';
+import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult, PlanningResult, Collaborator, ProjectVersion, VersionDiff  } from '../../services/project';
 import mermaid from 'mermaid';
 import { FormsModule } from '@angular/forms';
 
@@ -20,6 +20,10 @@ export class ProjectDetail implements OnInit {
   techStack: TechStackResult | null = null;
   planning: PlanningResult | null = null;
   collaborators: Collaborator[] = [];
+  versions: ProjectVersion[] = [];
+  selectedFromVersion: number | null = null;
+  selectedToVersion: number | null = null;
+  versionDiff: VersionDiff | null = null;
   isLoading = true;
   isAnalyzing = false;
   isGeneratingDiagrams = false;
@@ -34,6 +38,8 @@ export class ProjectDetail implements OnInit {
   inviteRole = 'viewer';
   isInviting = false;
   collabError = '';
+  isDiffing = false;
+  diffError = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -300,6 +306,45 @@ removeCollab(c: Collaborator) {
       this.cdr.detectChanges();
     }
   });
+}
+
+loadVersions() {
+  if (!this.project) return;
+  this.projectService.getVersions(this.project.id).subscribe({
+    next: (data) => {
+      this.versions = data;
+      this.cdr.detectChanges();
+    },
+    error: () => {}
+  });
+}
+
+runDiff() {
+  if (!this.project || this.selectedFromVersion === null || this.selectedToVersion === null) return;
+  this.isDiffing = true;
+  this.diffError = '';
+  this.versionDiff = null;
+
+  this.projectService.diffVersions(this.project.id, this.selectedFromVersion, this.selectedToVersion).subscribe({
+    next: (data) => {
+      this.versionDiff = data;
+      this.isDiffing = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isDiffing = false;
+      this.diffError = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+diffKeys(): string[] {
+  return this.versionDiff ? Object.keys(this.versionDiff.changes) : [];
+}
+
+formatFieldName(key: string): string {
+  return key.replace(/_json$/, '').replace(/_/g, ' ');
 }
 }
 

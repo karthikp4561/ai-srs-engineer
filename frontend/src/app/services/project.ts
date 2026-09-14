@@ -102,6 +102,19 @@ export interface Collaborator {
   created_at: string;
 }
 
+export interface ProjectVersion {
+  id: number;
+  version_number: number;
+  change_summary: string | null;
+  created_at: string;
+}
+
+export interface VersionDiff {
+  from_version: number;
+  to_version: number;
+  changes: { [key: string]: any };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -188,6 +201,16 @@ export class ProjectService {
   
   getSharedProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(`${this.apiUrl}/shared/with-me`);
+  }
+
+  getVersions(projectId: number): Observable<ProjectVersion[]> {
+  return this.http.get<ProjectVersion[]>(`${this.apiUrl}/${projectId}/versions/`);
+  }
+
+  diffVersions(projectId: number, fromVersion: number, toVersion: number): Observable<VersionDiff> {
+  return this.http.get<VersionDiff>(`${this.apiUrl}/${projectId}/versions/diff`, {
+    params: { from_version: fromVersion, to_version: toVersion }
+  });
   }
 }
 

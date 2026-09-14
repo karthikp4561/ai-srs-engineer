@@ -50,6 +50,44 @@
   </div>
 </div>
 
+<div class="plate version-section" *ngIf="versions.length > 0">
+  <span class="block-label">Version History</span>
+
+  <div class="version-list">
+    <div class="version-row" *ngFor="let v of versions">
+      <span class="version-num">v{{ v.version_number }}</span>
+      <span class="version-summary">{{ v.change_summary || 'Update' }}</span>
+      <span class="version-date">{{ v.created_at | date:'MMM d, y, h:mm a' }}</span>
+    </div>
+  </div>
+
+  <div class="diff-picker" *ngIf="versions.length > 1">
+    <span class="field-label" style="margin: 0;">Compare</span>
+    <select [(ngModel)]="selectedFromVersion" name="fromVersion">
+      <option [ngValue]="null">From version…</option>
+      <option *ngFor="let v of versions" [ngValue]="v.version_number">v{{ v.version_number }}</option>
+    </select>
+    <span class="field-label" style="margin: 0;">to</span>
+    <select [(ngModel)]="selectedToVersion" name="toVersion">
+      <option [ngValue]="null">To version…</option>
+      <option *ngFor="let v of versions" [ngValue]="v.version_number">v{{ v.version_number }}</option>
+    </select>
+    <button class="btn-primary btn-small" (click)="runDiff()" [disabled]="isDiffing || selectedFromVersion === null || selectedToVersion === null">
+      {{ isDiffing ? 'Comparing…' : 'Compare' }}
+    </button>
+  </div>
+
+  <div *ngIf="diffError" class="alert-error">{{ diffError }}</div>
+
+  <div *ngIf="versionDiff" class="diff-result">
+    <div *ngIf="diffKeys().length === 0" class="empty-note">No differences between v{{ versionDiff.from_version }} and v{{ versionDiff.to_version }}.</div>
+    <div class="diff-field" *ngFor="let key of diffKeys()">
+      <span class="diff-field-name">{{ formatFieldName(key) }}</span>
+      <span class="diff-badge">changed</span>
+    </div>
+  </div>
+</div>
+
     <div class="section">
       <h3>Description</h3>
       <p>{{ project.description }}</p>

@@ -164,3 +164,18 @@
 .invite-row input { flex: 1; padding: 0.5rem 0.7rem; border: 1px solid var(--grid-line); border-radius: 3px; font-family: var(--font-body); font-size: 0.88rem; }
 .invite-row select { padding: 0.5rem; border: 1px solid var(--grid-line); border-radius: 3px; font-family: var(--font-body); font-size: 0.85rem; }
 .btn-small { padding: 0.5rem 0.9rem; font-size: 0.85rem; }
+
+.version-section { padding: 1.2rem 1.4rem; margin-bottom: 1.4rem; }
+.version-list { margin-bottom: 1rem; max-height: 220px; overflow-y: auto; }
+.version-row { display: flex; align-items: center; gap: 0.8rem; padding: 0.55rem 0; border-bottom: 1px solid var(--grid-line); font-size: 0.85rem; }
+.version-row:last-child { border-bottom: none; }
+.version-num { font-family: var(--font-mono); color: var(--blueprint); font-weight: 600; width: 40px; flex-shrink: 0; }
+.version-summary { flex: 1; color: var(--ink); }
+.version-date { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft); }
+.diff-picker { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--grid-line); flex-wrap: wrap; }
+.diff-picker select { padding: 0.4rem 0.6rem; border: 1px solid var(--grid-line); border-radius: 3px; font-family: var(--font-body); font-size: 0.85rem; }
+.diff-result { margin-top: 1rem; }
+.diff-field { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--grid-line); font-size: 0.85rem; }
+.diff-field:last-child { border-bottom: none; }
+.diff-field-name { text-transform: capitalize; color: var(--ink); }
+.diff-badge { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; background: var(--amber-soft); color: var(--amber); padding: 0.15rem 0.5rem; border-radius: 3px; }

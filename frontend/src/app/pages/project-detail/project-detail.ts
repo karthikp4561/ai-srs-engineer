@@ -64,6 +64,8 @@ export class ProjectDetail implements OnInit {
         this.parseApiSpec();
         this.parseTechStack();
         this.parsePlanning();
+        this.loadCollaborators();
+        this.loadVersions();
         this.isLoading = false;
         this.cdr.detectChanges();
         this.renderDiagrams();

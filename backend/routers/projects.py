@@ -7,6 +7,7 @@ from models import Project, User, AIUsageLog, ProjectCollaborator
 from schemas import ProjectCreate, ProjectUpdate, ProjectOut
 from dependencies import get_current_user
 from collaboration_dependencies import require_viewer, require_editor, require_owner
+from versioning_service import save_version
 
 import json
 from ai_service import analyze_project_description, generate_diagrams, generate_api_spec, generate_tech_stack, generate_project_plan
@@ -42,8 +43,6 @@ def list_projects(
     return db.query(Project).filter(Project.user_id == current_user.id).order_by(Project.created_at.desc()).all()
 
 
-# IMPORTANT: this must stay ABOVE any "/{project_id}" routes, otherwise
-# FastAPI tries to parse "shared" as an integer project_id and fails first.
 @router.get("/shared/with-me", response_model=List[ProjectOut])
 def list_shared_projects(
     db: Session = Depends(get_db),
@@ -108,6 +107,7 @@ def analyze_project(
     db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="analyze"))
     db.commit()
     db.refresh(project)
+    save_version(db, project, current_user.id, "Requirements analyzed")
     return project
 
 
@@ -135,6 +135,7 @@ def create_diagrams(
     db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="diagrams"))
     db.commit()
     db.refresh(project)
+    save_version(db, project, current_user.id, "Diagrams generated")
     return project
 
 
@@ -161,6 +162,7 @@ def create_api_spec(
     db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="api_spec"))
     db.commit()
     db.refresh(project)
+    save_version(db, project, current_user.id, "API spec generated")
     return project
 
 
@@ -187,6 +189,7 @@ def create_tech_stack(
     db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="tech_stack"))
     db.commit()
     db.refresh(project)
+    save_version(db, project, current_user.id, "Tech stack recommended")
     return project
 
 
@@ -214,6 +217,7 @@ def create_project_plan(
     db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="plan"))
     db.commit()
     db.refresh(project)
+    save_version(db, project, current_user.id, "Project plan generated")
     return project
 
 

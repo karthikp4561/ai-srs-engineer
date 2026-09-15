@@ -4,10 +4,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from database import get_db, engine, Base
-from routers import auth
 import models
 
-from routers import auth, projects, admin, collaboration
+from routers import auth, projects, admin, collaboration, versions
 
 Base.metadata.create_all(bind=engine)
 
@@ -33,7 +32,6 @@ def db_check(db: Session = Depends(get_db)):
     return {"database": "connected ✅", "result": result.scalar()}
 
 app.include_router(projects.router)
-
 app.include_router(admin.router)
-
 app.include_router(collaboration.router)
+app.include_router(versions.router)

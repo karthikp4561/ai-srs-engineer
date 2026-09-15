@@ -209,3 +209,18 @@ class CollaboratorOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class VersionOut(BaseModel):
+    id: int
+    version_number: int
+    change_summary: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class VersionDiffOut(BaseModel):
+    from_version: int
+    to_version: int
+    changes: dict

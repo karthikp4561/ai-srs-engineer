@@ -7,6 +7,8 @@ from database import get_db, engine, Base
 from routers import auth
 import models
 
+from routers import auth, projects
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AI Software Requirement Engineer")
@@ -29,3 +31,5 @@ def read_root():
 def db_check(db: Session = Depends(get_db)):
     result = db.execute(text("SELECT 1"))
     return {"database": "connected ✅", "result": result.scalar()}
+
+app.include_router(projects.router)

@@ -348,5 +348,32 @@ diffKeys(): string[] {
 formatFieldName(key: string): string {
   return key.replace(/_json$/, '').replace(/_/g, ' ');
 }
+
+isSimpleFieldChange(key: string): boolean {
+  return ['title', 'description', 'status'].includes(key);
 }
 
+isAnalysisChange(key: string): boolean {
+  return key === 'analysis_json';
+}
+
+getSimpleChange(key: string): { old: any; new: any } {
+  return this.versionDiff!.changes[key];
+}
+
+getAnalysisSubFields(key: string): string[] {
+  return Object.keys(this.versionDiff!.changes[key] || {});
+}
+
+getAnalysisAdded(key: string, subField: string): string[] {
+  return this.versionDiff!.changes[key]?.[subField]?.added || [];
+}
+
+getAnalysisRemoved(key: string, subField: string): string[] {
+  return this.versionDiff!.changes[key]?.[subField]?.removed || [];
+}
+
+formatSubFieldName(key: string): string {
+  return key.replace(/_/g, ' ');
+}
+}

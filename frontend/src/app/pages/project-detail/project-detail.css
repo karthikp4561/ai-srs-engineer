@@ -179,3 +179,17 @@
 .diff-field:last-child { border-bottom: none; }
 .diff-field-name { text-transform: capitalize; color: var(--ink); }
 .diff-badge { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; background: var(--amber-soft); color: var(--amber); padding: 0.15rem 0.5rem; border-radius: 3px; }
+
+.diff-block { margin-bottom: 1.1rem; padding-bottom: 1.1rem; border-bottom: 1px solid var(--grid-line); }
+.diff-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.diff-field-name { display: block; font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--blueprint); margin-bottom: 0.5rem; }
+.diff-old-new { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; flex-wrap: wrap; }
+.diff-old { color: var(--danger); text-decoration: line-through; }
+.diff-new { color: var(--teal); font-weight: 600; }
+.diff-arrow { color: var(--ink-soft); }
+.diff-subfield { margin: 0.6rem 0 0.6rem 0.4rem; }
+.diff-subfield-name { display: block; font-size: 0.78rem; font-weight: 600; color: var(--ink); text-transform: capitalize; margin-bottom: 0.3rem; }
+.diff-item { font-size: 0.83rem; padding: 0.3rem 0.5rem; border-radius: 3px; margin-bottom: 0.25rem; line-height: 1.4; }
+.diff-item.added { background: var(--teal-soft); color: var(--teal); }
+.diff-item.removed { background: var(--danger-soft); color: var(--danger); }
+.diff-sign { font-family: var(--font-mono); font-weight: 700; margin-right: 0.3rem; }

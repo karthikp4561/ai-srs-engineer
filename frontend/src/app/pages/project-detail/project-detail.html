@@ -80,11 +80,42 @@
   <div *ngIf="diffError" class="alert-error">{{ diffError }}</div>
 
   <div *ngIf="versionDiff" class="diff-result">
-    <div *ngIf="diffKeys().length === 0" class="empty-note">No differences between v{{ versionDiff.from_version }} and v{{ versionDiff.to_version }}.</div>
-    <div class="diff-field" *ngFor="let key of diffKeys()">
+  <div *ngIf="diffKeys().length === 0" class="empty-note">No differences between v{{ versionDiff.from_version }} and v{{ versionDiff.to_version }}.</div>
+
+  <div *ngFor="let key of diffKeys()" class="diff-block">
+
+    <!-- Simple fields: title, description, status -->
+    <div *ngIf="isSimpleFieldChange(key)" class="diff-simple">
       <span class="diff-field-name">{{ formatFieldName(key) }}</span>
-      <span class="diff-badge">changed</span>
+      <div class="diff-old-new">
+        <span class="diff-old">{{ getSimpleChange(key).old }}</span>
+        <span class="diff-arrow">→</span>
+        <span class="diff-new">{{ getSimpleChange(key).new }}</span>
+      </div>
     </div>
+
+    <!-- Analysis fields: detailed added/removed per sub-field -->
+    <div *ngIf="isAnalysisChange(key)" class="diff-analysis">
+      <span class="diff-field-name">{{ formatFieldName(key) }}</span>
+
+      <div class="diff-subfield" *ngFor="let sub of getAnalysisSubFields(key)">
+        <span class="diff-subfield-name">{{ formatSubFieldName(sub) }}</span>
+
+        <div class="diff-item added" *ngFor="let item of getAnalysisAdded(key, sub)">
+          <span class="diff-sign">+</span> {{ item }}
+        </div>
+        <div class="diff-item removed" *ngFor="let item of getAnalysisRemoved(key, sub)">
+          <span class="diff-sign">−</span> {{ item }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Other AI-generated fields (diagrams, API spec, tech stack, planning): presence-level only -->
+    <div *ngIf="!isSimpleFieldChange(key) && !isAnalysisChange(key)" class="diff-field">
+      <span class="diff-field-name">{{ formatFieldName(key) }}</span>
+      <span class="diff-badge">regenerated</span>
+    </div>
+
   </div>
 </div>
 

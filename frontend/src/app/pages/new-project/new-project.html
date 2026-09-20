@@ -1,20 +1,48 @@
-<div class="auth-container">
-  <form (ngSubmit)="onSubmit()" class="auth-form wide">
-    <h2>Describe Your Project</h2>
+<div class="auth-split">
+  <aside class="auth-visual">
+    <div class="grid-overlay"></div>
+    <div class="visual-content">
+      <span class="eyebrow eyebrow-light">New specification</span>
+      <h2>Turn a paragraph<br>into a plan.</h2>
+      <p>Write what you're building the way you'd explain it to a teammate — who it's for, what it does, what matters most.</p>
 
-    <div *ngIf="errorMessage" class="error-box">{{ errorMessage }}</div>
+      <div class="mock-spec">
+        <div class="mock-spec-header">
+          <span>SPEC-NEW</span>
+          <span class="mock-badge" style="color: var(--amber);">Draft</span>
+        </div>
+        <div class="mock-line mock-line-title"></div>
+        <div class="mock-row"><span class="mock-num">01</span><div class="mock-line short"></div></div>
+        <div class="mock-row"><span class="mock-num">02</span><div class="mock-line"></div></div>
+      </div>
+    </div>
+  </aside>
 
-    <label>Project Title</label>
-    <input type="text" [(ngModel)]="title" name="title" required placeholder="e.g. Hydration Tracker App" />
+  <section class="auth-form-panel">
+    <div class="auth-form-inner form-wide">
+      <a routerLink="/dashboard" class="back-link">← Back to registry</a>
+      <span class="eyebrow">New specification // Draft</span>
+      <h1>Describe your project</h1>
+      <p class="subtext">The analyzer handles structuring it into requirements.</p>
 
-    <label>Describe your project idea in plain language</label>
-    <textarea [(ngModel)]="description" name="description" required rows="8"
-      placeholder="Describe what the app should do, who it's for, and any key features you have in mind..."></textarea>
+      <form (ngSubmit)="onSubmit()">
+        <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
 
-    <button type="submit" [disabled]="isLoading">
-      {{ isLoading ? 'Saving...' : 'Save Project' }}
-    </button>
+        <label class="field">
+          <span class="field-label">Project title</span>
+          <input type="text" [(ngModel)]="title" name="title" required placeholder="e.g. Hydration Tracker App" />
+        </label>
 
-    <p><a routerLink="/dashboard">Cancel and go back</a></p>
-  </form>
+        <label class="field">
+          <span class="field-label">Project description</span>
+          <textarea [(ngModel)]="description" name="description" required rows="8"
+            placeholder="Describe what the app should do, who it's for, and any key features you have in mind…"></textarea>
+        </label>
+
+        <button type="submit" class="btn-primary btn-block" [disabled]="isLoading">
+          {{ isLoading ? 'Saving…' : 'Save specification' }}
+        </button>
+      </form>
+    </div>
+  </section>
 </div>

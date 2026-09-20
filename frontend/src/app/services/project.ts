@@ -12,12 +12,19 @@ export interface AnalysisResult {
   assumptions: string[];
 }
 
+export interface DiagramResult {
+  use_case_diagram: string;
+  class_diagram: string;
+  er_diagram: string;
+}
+
 export interface Project {
   id: number;
   title: string;
   description: string;
   status: string;
   analysis_json: string | null;
+  diagrams_json: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -53,5 +60,9 @@ export class ProjectService {
 
   analyzeProject(id: number): Observable<Project> {
     return this.http.post<Project>(`${this.apiUrl}/${id}/analyze`, {});
+  }
+
+  generateDiagrams(id: number): Observable<Project> {
+    return this.http.post<Project>(`${this.apiUrl}/${id}/diagrams`, {});
   }
 }

@@ -72,5 +72,32 @@
         </ul>
       </div>
     </div>
+
+    <div *ngIf="analysis" class="diagrams-section">
+      <div class="section-header-row">
+        <h2>UML Diagrams</h2>
+        <button *ngIf="!diagrams" class="btn-primary" (click)="runDiagramGeneration()" [disabled]="isGeneratingDiagrams">
+          {{ isGeneratingDiagrams ? 'Generating diagrams…' : 'Generate diagrams' }}
+        </button>
+        <button *ngIf="diagrams" class="btn-secondary" (click)="runDiagramGeneration()" [disabled]="isGeneratingDiagrams">
+          {{ isGeneratingDiagrams ? 'Regenerating…' : 'Regenerate diagrams' }}
+        </button>
+      </div>
+
+      <div *ngIf="diagrams" class="diagram-block">
+        <h3>Use Case Diagram</h3>
+        <div id="use-case-diagram" class="diagram-canvas"></div>
+      </div>
+
+      <div *ngIf="diagrams" class="diagram-block">
+        <h3>Class Diagram</h3>
+        <div id="class-diagram" class="diagram-canvas"></div>
+      </div>
+
+      <div *ngIf="diagrams" class="diagram-block">
+        <h3>Entity Relationship Diagram</h3>
+        <div id="er-diagram" class="diagram-canvas"></div>
+      </div>
+    </div>
   </div>
 </div>

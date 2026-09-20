@@ -87,3 +87,11 @@
   border-top: 2px solid #eee;
   padding-top: 1.5rem;
 }
+.diagrams-section { margin-top: 2.2rem; border-top: 1px solid var(--grid-line); padding-top: 1.6rem; }
+.section-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem; }
+.section-header-row h2 { font-size: 1.3rem; }
+.diagram-block { background: var(--paper-raised); border: 1px solid var(--grid-line); border-radius: var(--radius); padding: 1.4rem; margin-bottom: 1.4rem; overflow-x: auto; }
+.diagram-block h3 { font-size: 0.95rem; margin-bottom: 0.9rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; font-family: var(--font-mono); }
+.diagram-canvas { display: flex; justify-content: center; min-height: 60px; }
+.diagram-canvas svg { max-width: 100%; height: auto; }
+.diagram-error { color: var(--danger); font-size: 0.85rem; }

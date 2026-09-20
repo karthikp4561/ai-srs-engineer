@@ -8,7 +8,7 @@ from schemas import ProjectCreate, ProjectUpdate, ProjectOut
 from dependencies import get_current_user
 
 import json
-from ai_service import analyze_project_description
+from ai_service import analyze_project_description, generate_diagrams
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -105,6 +105,37 @@ def analyze_project(
 
     project.analysis_json = json.dumps(result)
     project.status = "analyzed"
+    db.commit()
+    db.refresh(project)
+    return project
+
+@router.post("/{project_id}/diagrams", response_model=ProjectOut)
+def create_diagrams(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project = db.query(Project).filter(
+        Project.id == project_id, Project.user_id == current_user.id
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if not project.analysis_json:
+        raise HTTPException(status_code=400, detail="Project must be analyzed before generating diagrams")
+
+    analysis = json.loads(project.analysis_json)
+
+    try:
+        diagrams = generate_diagrams(
+            description=project.description,
+            functional_requirements=analysis.get("functional_requirements", []),
+            target_users=analysis.get("target_users", []),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Diagram generation failed: {str(e)}")
+
+    project.diagrams_json = json.dumps(diagrams)
     db.commit()
     db.refresh(project)
     return project

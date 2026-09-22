@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProjectService, Project, AnalysisResult, DiagramResult } from '../../services/project';
+import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult, PlanningResult } from '../../services/project';
 import mermaid from 'mermaid';
 
 @Component({
@@ -15,9 +15,15 @@ export class ProjectDetail implements OnInit {
   project: Project | null = null;
   analysis: AnalysisResult | null = null;
   diagrams: DiagramResult | null = null;
+  apiSpec: ApiSpecResult | null = null;
+  techStack: TechStackResult | null = null;
+  planning: PlanningResult | null = null;
   isLoading = true;
   isAnalyzing = false;
   isGeneratingDiagrams = false;
+  isGeneratingApiSpec = false;
+  isGeneratingTechStack = false;
+  isGeneratingPlanning = false;
   errorMessage = '';
   diagramsRendered = false;
 
@@ -41,6 +47,9 @@ export class ProjectDetail implements OnInit {
         this.project = data;
         this.parseAnalysis();
         this.parseDiagrams();
+        this.parseApiSpec();
+        this.parseTechStack();
+        this.parsePlanning();
         this.isLoading = false;
         this.cdr.detectChanges();
         this.renderDiagrams();
@@ -64,6 +73,12 @@ export class ProjectDetail implements OnInit {
       this.diagrams = JSON.parse(this.project.diagrams_json);
     }
   }
+
+  parseApiSpec() {
+  if (this.project?.api_spec_json) {
+    this.apiSpec = JSON.parse(this.project.api_spec_json);
+  }
+}
 
   runAnalysis() {
     if (!this.project) return;
@@ -106,6 +121,52 @@ export class ProjectDetail implements OnInit {
     });
   }
 
+  runApiSpecGeneration() {
+  if (!this.project) return;
+  this.isGeneratingApiSpec = true;
+  this.errorMessage = '';
+
+  this.projectService.generateApiSpec(this.project.id).subscribe({
+    next: (data) => {
+      this.project = data;
+      this.parseApiSpec();
+      this.isGeneratingApiSpec = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isGeneratingApiSpec = false;
+      this.errorMessage = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+parseTechStack() {
+  if (this.project?.tech_stack_json) {
+    this.techStack = JSON.parse(this.project.tech_stack_json);
+  }
+}
+
+runTechStackGeneration() {
+  if (!this.project) return;
+  this.isGeneratingTechStack = true;
+  this.errorMessage = '';
+
+  this.projectService.generateTechStack(this.project.id).subscribe({
+    next: (data) => {
+      this.project = data;
+      this.parseTechStack();
+      this.isGeneratingTechStack = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isGeneratingTechStack = false;
+      this.errorMessage = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
   private async renderDiagrams() {
     if (!this.diagrams) return;
 
@@ -138,4 +199,38 @@ export class ProjectDetail implements OnInit {
     }
     return 'Something went wrong. Please try again.';
   }
+
+  parsePlanning() {
+  if (this.project?.planning_json) {
+    this.planning = JSON.parse(this.project.planning_json);
+  }
 }
+
+runPlanningGeneration() {
+  if (!this.project) return;
+  this.isGeneratingPlanning = true;
+  this.errorMessage = '';
+
+  this.projectService.generatePlanning(this.project.id).subscribe({
+    next: (data) => {
+      this.project = data;
+      this.parsePlanning();
+      this.isGeneratingPlanning = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isGeneratingPlanning = false;
+      this.errorMessage = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+impactClass(impact: string): string {
+  const i = impact.toLowerCase();
+  if (i === 'high') return 'impact-high';
+  if (i === 'medium') return 'impact-medium';
+  return 'impact-low';
+}
+}
+

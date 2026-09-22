@@ -35,9 +35,20 @@ export class Register {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.detail || 'Registration failed. Please try again.';
+        this.errorMessage = this.extractErrorMessage(err);
         this.cdr.detectChanges();
       }
     });
+  }
+
+  private extractErrorMessage(err: any): string {
+    const detail = err.error?.detail;
+    if (typeof detail === 'string') {
+      return detail;
+    }
+    if (Array.isArray(detail) && detail.length > 0) {
+      return detail.map((d: any) => d.msg).join(', ');
+    }
+    return 'Registration failed. Please try again.';
   }
 }

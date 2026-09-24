@@ -147,3 +147,31 @@ class ProjectOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class AdminUserOut(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    role: str
+    is_active: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AdminProjectOut(BaseModel):
+    id: int
+    title: str
+    status: str
+    owner_email: str
+    created_at: datetime
+
+
+class AnalyticsSummary(BaseModel):
+    total_users: int
+    total_projects: int
+    active_users: int
+    projects_by_status: dict
+    ai_calls_by_action: dict
+    ai_calls_last_7_days: int

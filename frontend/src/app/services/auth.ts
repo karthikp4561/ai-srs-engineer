@@ -49,4 +49,16 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('access_token');
   }
+
+  isAdmin(): boolean {
+  const token = this.getToken();
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role === 'admin';
+  } catch {
+    return false;
+  }
+  }
 }
+

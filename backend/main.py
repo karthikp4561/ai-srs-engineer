@@ -7,7 +7,7 @@ from database import get_db, engine, Base
 from routers import auth
 import models
 
-from routers import auth, projects
+from routers import auth, projects, admin
 
 Base.metadata.create_all(bind=engine)
 
@@ -33,3 +33,5 @@ def db_check(db: Session = Depends(get_db)):
     return {"database": "connected ✅", "result": result.scalar()}
 
 app.include_router(projects.router)
+
+app.include_router(admin.router)

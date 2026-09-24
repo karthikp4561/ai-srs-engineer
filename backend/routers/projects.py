@@ -3,12 +3,15 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from database import get_db
-from models import Project, User
+from models import Project, User, AIUsageLog
 from schemas import ProjectCreate, ProjectUpdate, ProjectOut
 from dependencies import get_current_user
 
 import json
 from ai_service import analyze_project_description, generate_diagrams, generate_api_spec, generate_tech_stack, generate_project_plan
+
+from fastapi.responses import StreamingResponse
+from export_service import generate_pdf, generate_docx
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -105,6 +108,7 @@ def analyze_project(
 
     project.analysis_json = json.dumps(result)
     project.status = "analyzed"
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="analyze"))
     db.commit()
     db.refresh(project)
     return project
@@ -136,6 +140,7 @@ def create_diagrams(
         raise HTTPException(status_code=502, detail=f"Diagram generation failed: {str(e)}")
 
     project.diagrams_json = json.dumps(diagrams)
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="diagrams"))
     db.commit()
     db.refresh(project)
     return project
@@ -166,6 +171,7 @@ def create_api_spec(
         raise HTTPException(status_code=502, detail=f"API spec generation failed: {str(e)}")
 
     project.api_spec_json = json.dumps(api_spec)
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="api_spec"))
     db.commit()
     db.refresh(project)
     return project
@@ -196,6 +202,7 @@ def create_tech_stack(
         raise HTTPException(status_code=502, detail=f"Tech stack generation failed: {str(e)}")
 
     project.tech_stack_json = json.dumps(tech_stack)
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="tech_stack"))
     db.commit()
     db.refresh(project)
     return project
@@ -227,6 +234,48 @@ def create_project_plan(
         raise HTTPException(status_code=502, detail=f"Project plan generation failed: {str(e)}")
 
     project.planning_json = json.dumps(plan)
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="plan"))
     db.commit()
     db.refresh(project)
     return project
+
+@router.get("/{project_id}/export/pdf")
+def export_pdf(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project = db.query(Project).filter(
+        Project.id == project_id, Project.user_id == current_user.id
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    buffer = generate_pdf(project)
+    filename = f"{project.title.replace(' ', '_')}_SRS.pdf"
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+@router.get("/{project_id}/export/docx")
+def export_docx(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project = db.query(Project).filter(
+        Project.id == project_id, Project.user_id == current_user.id
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    buffer = generate_docx(project)
+    filename = f"{project.title.replace(' ', '_')}_SRS.docx"
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )

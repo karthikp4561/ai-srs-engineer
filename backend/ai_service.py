@@ -37,7 +37,7 @@ def analyze_project_description(description: str) -> dict:
     prompt = ANALYSIS_PROMPT_TEMPLATE.format(description=description)
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "You are a precise software business analyst that only outputs valid JSON."},
             {"role": "user", "content": prompt}
@@ -92,7 +92,7 @@ def generate_diagrams(description: str, functional_requirements: list, target_us
     )
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "You are a precise software architect that only outputs valid JSON containing Mermaid.js diagram syntax."},
             {"role": "user", "content": prompt}
@@ -102,16 +102,24 @@ def generate_diagrams(description: str, functional_requirements: list, target_us
 
     raw_text = response.choices[0].message.content.strip()
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text, flags=re.MULTILINE).strip()
-
     try:
         result = json.loads(cleaned)
     except json.JSONDecodeError as e:
         raise ValueError(f"AI returned invalid JSON: {e}\nRaw response: {raw_text[:500]}")
 
-    # Fix a common Mermaid syntax mistake the AI makes: "|>" instead of "|"
+    def fix_unlabeled_nodes(code: str) -> str:
+        counter = {"n": 0}
+        def repl(m):
+            counter["n"] += 1
+            return f"{m.group(1)}AutoNode{counter['n']}("
+        return re.sub(r'(-->\s*)\(', repl, code)
+
     for key in ("use_case_diagram", "class_diagram", "er_diagram"):
         if key in result:
             result[key] = re.sub(r'\|>', '|', result[key])
+
+    if "use_case_diagram" in result:
+        result["use_case_diagram"] = fix_unlabeled_nodes(result["use_case_diagram"])
 
     return result
 
@@ -152,7 +160,7 @@ def generate_api_spec(description: str, functional_requirements: list) -> dict:
     )
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "You are a precise backend API architect that only outputs valid JSON."},
             {"role": "user", "content": prompt}
@@ -203,7 +211,7 @@ def generate_tech_stack(description: str, non_functional_requirements: list) -> 
     )
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "You are a precise software architect that only outputs valid JSON."},
             {"role": "user", "content": prompt}
@@ -267,7 +275,7 @@ def generate_project_plan(description: str, functional_requirements: list, const
     )
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "You are a precise project manager that only outputs valid JSON."},
             {"role": "user", "content": prompt}

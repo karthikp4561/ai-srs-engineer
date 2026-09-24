@@ -31,5 +31,10 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     if not user or not verify_password(credentials.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="This account has been deactivated")
+
     token = create_access_token(data={"sub": str(user.id), "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
+
+    

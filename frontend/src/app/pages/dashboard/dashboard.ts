@@ -62,4 +62,8 @@ export class Dashboard implements OnInit {
     this.authService.logout();
     this.router.navigate(['/login']);
   }
+
+  get showAdminLink(): boolean {
+  return this.authService.isAdmin();
+  }
 }

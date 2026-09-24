@@ -9,6 +9,7 @@
       <div class="banner-actions">
         <button class="btn-primary" routerLink="/new-project">+ New specification</button>
         <button class="btn-ghost" (click)="logout()">Logout</button>
+        <a *ngIf="showAdminLink" routerLink="/admin" class="btn-ghost">Admin</a>
       </div>
     </div>
     <div class="stat-row">

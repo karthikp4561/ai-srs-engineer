@@ -5,6 +5,7 @@ import { Dashboard } from './pages/dashboard/dashboard';
 import { NewProject } from './pages/new-project/new-project';
 import { ProjectDetail } from './pages/project-detail/project-detail';
 import { authGuard } from './guards/auth-guard';
+import { Admin } from './pages/admin/admin';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -13,4 +14,5 @@ export const routes: Routes = [
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
   { path: 'new-project', component: NewProject, canActivate: [authGuard] },
   { path: 'projects/:id', component: ProjectDetail, canActivate: [authGuard] },
+  { path: 'admin', component: Admin, canActivate: [authGuard] },
 ];

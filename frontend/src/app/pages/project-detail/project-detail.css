@@ -150,3 +150,5 @@
 .impact-high { background: var(--danger); }
 .impact-medium { background: var(--amber); }
 .impact-low { background: var(--teal); }
+
+.export-actions { display: flex; gap: 0.6rem; margin: 0.8rem 0 1.4rem 0; }

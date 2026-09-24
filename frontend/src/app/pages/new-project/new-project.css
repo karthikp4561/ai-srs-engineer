@@ -1,0 +1,6 @@
+.form-wide { max-width: 460px; }
+.back-link { display: inline-block; font-family: var(--font-mono); font-size: 0.8rem; margin-bottom: 1.2rem; text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+.auth-form-inner h1 { font-size: 1.6rem; margin-bottom: 0.4rem; }
+.subtext { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 1.8rem 0; }
+.btn-block { width: 100%; margin-top: 0.4rem; }

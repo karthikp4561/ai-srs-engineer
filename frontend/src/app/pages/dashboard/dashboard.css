@@ -1,0 +1,15 @@
+.page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.4rem; gap: 1rem; flex-wrap: wrap; }
+.loading-text { font-family: var(--font-mono); color: var(--ink-soft); font-size: 0.9rem; }
+.empty-state { text-align: center; padding: 4rem 2rem; }
+.empty-state h2 { font-size: 1.4rem; margin: 0.6rem 0; }
+.empty-state p { color: var(--ink-soft); max-width: 420px; margin: 0 auto 1.6rem auto; }
+.project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
+.project-card { padding: 1.3rem 1.4rem; cursor: pointer; transition: box-shadow 0.15s ease, transform 0.1s ease; }
+.project-card:hover { box-shadow: 0 6px 18px rgba(22, 35, 51, 0.08); transform: translateY(-2px); }
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+.spec-id { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft); letter-spacing: 0.04em; }
+.project-card h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+.project-card p { color: var(--ink-soft); font-size: 0.9rem; min-height: 58px; line-height: 1.45; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--grid-line); }
+.timestamp { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft); }
+.btn-small { padding: 0.3rem 0.6rem; font-size: 0.8rem; }

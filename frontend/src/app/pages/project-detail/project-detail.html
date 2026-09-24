@@ -1,0 +1,251 @@
+<div class="detail-container">
+  <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+
+  <div *ngIf="isLoading">Loading project...</div>
+
+  <div *ngIf="!isLoading && project">
+    <div class="detail-header">
+      <h1>{{ project.title }}</h1>
+      <span class="status-badge">{{ project.status }}</span>
+    </div>
+  
+    <div class="export-actions">
+  <button class="btn-secondary" (click)="exportPdf()" [disabled]="isExportingPdf">
+    {{ isExportingPdf ? 'Preparing PDF…' : '⬇ Export PDF' }}
+  </button>
+  <button class="btn-secondary" (click)="exportDocx()" [disabled]="isExportingDocx">
+    {{ isExportingDocx ? 'Preparing Word…' : '⬇ Export Word' }}
+  </button>
+    </div>
+
+    <div class="section">
+      <h3>Description</h3>
+      <p>{{ project.description }}</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-box">{{ errorMessage }}</div>
+
+    <button *ngIf="!analysis" class="btn-primary" (click)="runAnalysis()" [disabled]="isAnalyzing">
+      {{ isAnalyzing ? 'Analyzing with AI...' : '✨ Analyze with AI' }}
+    </button>
+
+    <button *ngIf="analysis" class="btn-secondary" (click)="runAnalysis()" [disabled]="isAnalyzing">
+      {{ isAnalyzing ? 'Re-analyzing...' : '🔄 Re-analyze' }}
+    </button>
+
+    <div *ngIf="analysis" class="analysis-results">
+      <div class="section">
+        <h3>Objectives</h3>
+        <ul>
+          <li *ngFor="let obj of analysis.objectives">{{ obj }}</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Scope</h3>
+        <p>{{ analysis.scope }}</p>
+      </div>
+
+      <div class="section">
+        <h3>Target Users</h3>
+        <div class="tag-list">
+          <span class="tag" *ngFor="let user of analysis.target_users">{{ user }}</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Functional Requirements</h3>
+        <ul>
+          <li *ngFor="let req of analysis.functional_requirements">{{ req }}</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Non-Functional Requirements</h3>
+        <ul>
+          <li *ngFor="let req of analysis.non_functional_requirements">{{ req }}</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Constraints</h3>
+        <ul>
+          <li *ngFor="let c of analysis.constraints">{{ c }}</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Assumptions</h3>
+        <ul>
+          <li *ngFor="let a of analysis.assumptions">{{ a }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div *ngIf="analysis" class="diagrams-section">
+      <div class="section-header-row">
+        <h2>UML Diagrams</h2>
+        <button *ngIf="!diagrams" class="btn-primary" (click)="runDiagramGeneration()" [disabled]="isGeneratingDiagrams">
+          {{ isGeneratingDiagrams ? 'Generating diagrams…' : 'Generate diagrams' }}
+        </button>
+        <button *ngIf="diagrams" class="btn-secondary" (click)="runDiagramGeneration()" [disabled]="isGeneratingDiagrams">
+          {{ isGeneratingDiagrams ? 'Regenerating…' : 'Regenerate diagrams' }}
+        </button>
+      </div>
+
+      <div *ngIf="diagrams" class="diagram-block">
+        <h3>Use Case Diagram</h3>
+        <div id="use-case-diagram" class="diagram-canvas"></div>
+      </div>
+
+      <div *ngIf="diagrams" class="diagram-block">
+        <h3>Class Diagram</h3>
+        <div id="class-diagram" class="diagram-canvas"></div>
+      </div>
+
+      <div *ngIf="diagrams" class="diagram-block">
+        <h3>Entity Relationship Diagram</h3>
+        <div id="er-diagram" class="diagram-canvas"></div>
+      </div>
+    </div>
+
+    <div *ngIf="analysis" class="api-section">
+      <div class="section-header-row">
+        <h2>API Specification</h2>
+        <button *ngIf="!apiSpec" class="btn-primary" (click)="runApiSpecGeneration()" [disabled]="isGeneratingApiSpec">
+          {{ isGeneratingApiSpec ? 'Generating…' : 'Generate API spec' }}
+        </button>
+        <button *ngIf="apiSpec" class="btn-secondary" (click)="runApiSpecGeneration()" [disabled]="isGeneratingApiSpec">
+          {{ isGeneratingApiSpec ? 'Regenerating…' : 'Regenerate API spec' }}
+        </button>
+      </div>
+      
+      <div *ngIf="apiSpec" class="endpoint-list">
+        <div class="endpoint-row" *ngFor="let ep of apiSpec.endpoints">
+          <div class="endpoint-summary">
+            <span class="method-badge" [ngClass]="'method-' + ep.method.toLowerCase()">{{ ep.method }}</span>
+            <span class="endpoint-path">{{ ep.path }}</span>
+          </div>
+          <p class="endpoint-desc">{{ ep.description }}</p>
+          <div class="endpoint-bodies" *ngIf="ep.request_body || ep.response_body">
+            <div class="body-block" *ngIf="ep.request_body">
+              <span class="body-label">Request</span>
+              <pre>{{ ep.request_body | json }}</pre>
+            </div>
+            <div class="body-block" *ngIf="ep.response_body">
+              <span class="body-label">Response</span>
+              <pre>{{ ep.response_body | json }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="analysis" class="tech-section">
+      <div class="section-header-row">
+        <h2>Technology Stack</h2>
+        <button *ngIf="!techStack" class="btn-primary" (click)="runTechStackGeneration()" [disabled]="isGeneratingTechStack">
+          {{ isGeneratingTechStack ? 'Generating…' : 'Recommend tech stack' }}
+        </button>
+        <button *ngIf="techStack" class="btn-secondary" (click)="runTechStackGeneration()" [disabled]="isGeneratingTechStack">
+          {{ isGeneratingTechStack ? 'Regenerating…' : 'Regenerate recommendations' }}
+        </button>
+      </div>
+      <div *ngIf="techStack" class="tech-grid">
+        <div class="tech-card">
+          <span class="tech-category">Frontend</span>
+          <h4>{{ techStack.frontend.technology }}</h4>
+          <p>{{ techStack.frontend.reason }}</p>
+        </div>
+        <div class="tech-card">
+          <span class="tech-category">Backend</span>
+          <h4>{{ techStack.backend.technology }}</h4>
+          <p>{{ techStack.backend.reason }}</p>
+        </div>
+        <div class="tech-card">
+          <span class="tech-category">Database</span>
+          <h4>{{ techStack.database.technology }}</h4>
+          <p>{{ techStack.database.reason }}</p>
+        </div>
+        <div class="tech-card">
+          <span class="tech-category">Cloud Deployment</span>
+          <h4>{{ techStack.cloud_deployment.technology }}</h4>
+          <p>{{ techStack.cloud_deployment.reason }}</p>
+        </div>
+      </div>
+      <div *ngIf="techStack" class="integrations-block">
+        <span class="block-label">Third-Party Integrations</span>
+        <div class="integration-row" *ngFor="let item of techStack.third_party_integrations">
+          <strong>{{ item.technology }}</strong>
+          <p>{{ item.reason }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="analysis" class="planning-section">
+      <div class="section-header-row">
+        <h2>Project Planning</h2>
+        <button *ngIf="!planning" class="btn-primary" (click)="runPlanningGeneration()" [disabled]="isGeneratingPlanning">
+          {{ isGeneratingPlanning ? 'Generating…' : 'Generate project plan' }}
+        </button>
+        <button *ngIf="planning" class="btn-secondary" (click)="runPlanningGeneration()" [disabled]="isGeneratingPlanning">
+          {{ isGeneratingPlanning ? 'Regenerating…' : 'Regenerate plan' }}
+        </button>
+      </div>
+      
+      <div *ngIf="planning">
+        <div class="duration-banner">
+          <span class="duration-num">{{ planning.estimated_duration_weeks }}</span>
+          <span class="duration-label">weeks estimated</span>
+        </div>
+        
+        <div class="plan-subsection">
+          <span class="block-label">Phases</span>
+          <div class="phase-row" *ngFor="let phase of planning.phases">
+            <span class="phase-weeks">{{ phase.duration_weeks }}w</span>
+            <div>
+              <strong>{{ phase.name }}</strong>
+              <p>{{ phase.description }}</p>
+            </div>
+          </div>
+        </div>
+        
+        
+        <div class="plan-subsection">
+          <span class="block-label">Sprints</span>
+          <div class="sprint-card" *ngFor="let sprint of planning.sprints">
+            <div class="sprint-header">
+              <strong>{{ sprint.name }}</strong>
+              <span class="sprint-weeks">{{ sprint.duration_weeks }} weeks</span>
+            </div>
+            <ul>
+              <li *ngFor="let goal of sprint.goals">{{ goal }}</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="plan-subsection">
+          <span class="block-label">Milestones</span>
+          <div class="milestone-track">
+            <div class="milestone-point" *ngFor="let m of planning.milestones">
+              <span class="milestone-dot"></span>
+              <strong>{{ m.name }}</strong>
+              <p>{{ m.description }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="plan-subsection">
+          <span class="block-label">Risks</span>
+          <div class="risk-row" *ngFor="let r of planning.risks">
+            <span class="impact-badge" [ngClass]="impactClass(r.impact)">{{ r.impact }}</span>
+            <div>
+              <strong>{{ r.risk }}</strong>
+              <p>{{ r.mitigation }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

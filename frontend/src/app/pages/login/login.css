@@ -1,0 +1,6 @@
+.auth-form-inner h1 { font-size: 1.7rem; margin-bottom: 0.4rem; }
+.subtext { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 1.8rem 0; }
+.btn-block { width: 100%; margin-top: 0.4rem; }
+.switch-line { text-align: center; font-size: 0.88rem; color: var(--ink-soft); margin: 1.4rem 0 0 0; }
+.switch-line a { font-weight: 600; text-decoration: none; }
+.switch-line a:hover { text-decoration: underline; }

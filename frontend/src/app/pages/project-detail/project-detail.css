@@ -152,3 +152,15 @@
 .impact-low { background: var(--teal); }
 
 .export-actions { display: flex; gap: 0.6rem; margin: 0.8rem 0 1.4rem 0; }
+
+.collab-section { padding: 1.2rem 1.4rem; margin-bottom: 1.4rem; }
+.collab-list { margin-bottom: 1rem; }
+.collab-row { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0; border-bottom: 1px solid var(--grid-line); }
+.collab-row:last-child { border-bottom: none; }
+.collab-info { flex: 1; display: flex; flex-direction: column; }
+.collab-email { font-size: 0.78rem; color: var(--ink-soft); }
+.collab-row select { font-family: var(--font-body); font-size: 0.82rem; padding: 0.3rem 0.5rem; border: 1px solid var(--grid-line); border-radius: 3px; }
+.invite-row { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+.invite-row input { flex: 1; padding: 0.5rem 0.7rem; border: 1px solid var(--grid-line); border-radius: 3px; font-family: var(--font-body); font-size: 0.88rem; }
+.invite-row select { padding: 0.5rem; border: 1px solid var(--grid-line); border-radius: 3px; font-family: var(--font-body); font-size: 0.85rem; }
+.btn-small { padding: 0.5rem 0.9rem; font-size: 0.85rem; }

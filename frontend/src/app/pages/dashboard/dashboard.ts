@@ -13,6 +13,7 @@ import { ProjectService, Project } from '../../services/project';
 })
 export class Dashboard implements OnInit {
   projects: Project[] = [];
+  sharedProjects: Project[] = [];
   isLoading = true;
 
   get totalCount(): number { return this.projects.length; }
@@ -28,6 +29,7 @@ export class Dashboard implements OnInit {
 
   ngOnInit() {
     this.loadProjects();
+    this.loadSharedProjects();
   }
 
   loadProjects() {
@@ -44,6 +46,13 @@ export class Dashboard implements OnInit {
       }
     });
   }
+
+  loadSharedProjects() {
+  this.projectService.getSharedProjects().subscribe({
+    next: (data) => { this.sharedProjects = data; this.cdr.detectChanges(); },
+    error: () => {}
+  });
+}
 
   deleteProject(id: number, event: Event) {
     event.stopPropagation();

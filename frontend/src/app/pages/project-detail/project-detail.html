@@ -18,6 +18,38 @@
   </button>
     </div>
 
+    <div class="plate collab-section">
+  <span class="block-label">Collaborators</span>
+
+  <div class="collab-list" *ngIf="collaborators.length > 0">
+    <div class="collab-row" *ngFor="let c of collaborators">
+      <div class="collab-info">
+        <strong>{{ c.name }}</strong>
+        <span class="collab-email">{{ c.email }}</span>
+      </div>
+      <select [value]="c.role" (change)="changeRole(c, $any($event.target).value)">
+        <option value="editor">Editor</option>
+        <option value="viewer">Viewer</option>
+      </select>
+      <button class="btn-ghost btn-small danger" (click)="removeCollab(c)">Remove</button>
+    </div>
+  </div>
+  <p class="empty-note" *ngIf="collaborators.length === 0">No collaborators yet — invite a teammate below.</p>
+
+  <div *ngIf="collabError" class="alert-error">{{ collabError }}</div>
+
+  <div class="invite-row">
+    <input type="email" placeholder="teammate@email.com" [(ngModel)]="inviteEmail" name="inviteEmail" />
+    <select [(ngModel)]="inviteRole" name="inviteRole">
+      <option value="viewer">Viewer</option>
+      <option value="editor">Editor</option>
+    </select>
+    <button class="btn-primary btn-small" (click)="sendInvite()" [disabled]="isInviting || !inviteEmail">
+      {{ isInviting ? 'Inviting…' : 'Invite' }}
+    </button>
+  </div>
+</div>
+
     <div class="section">
       <h3>Description</h3>
       <p>{{ project.description }}</p>

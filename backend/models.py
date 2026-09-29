@@ -49,3 +49,14 @@ class ProjectCollaborator(Base):
     role = Column(String, default="viewer")  # owner, editor, viewer
     invited_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class ProjectVersion(Base):
+    __tablename__ = "project_versions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    version_number = Column(Integer, nullable=False)
+    snapshot_json = Column(Text, nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    change_summary = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -21,9 +21,11 @@ def get_connection(
     conn = db.query(GitHubConnection).filter(GitHubConnection.project_id == project.id).first()
     if not conn:
         raise HTTPException(status_code=404, detail="No GitHub connection for this project")
+    synced = json.loads(conn.synced_issues_json) if conn.synced_issues_json else {}
     return GitHubConnectionOut(
         repo_owner=conn.repo_owner, repo_name=conn.repo_name,
         connected=True, created_at=conn.created_at,
+        synced_issues=synced,
     )
 
 
@@ -57,9 +59,11 @@ def connect_repo(
         db.commit()
         db.refresh(conn)
 
+    synced = json.loads(conn.synced_issues_json) if conn.synced_issues_json else {}
     return GitHubConnectionOut(
         repo_owner=conn.repo_owner, repo_name=conn.repo_name,
         connected=True, created_at=conn.created_at,
+        synced_issues=synced,
     )
 
 
@@ -120,4 +124,4 @@ def sync_requirements(
     conn.synced_issues_json = json.dumps(synced)
     db.commit()
 
-    return SyncResult(created=created, skipped=skipped, issue_urls=issue_urls)
+    return SyncResult(created=created, skipped=skipped, issue_urls=issue_urls, synced_issues=synced)

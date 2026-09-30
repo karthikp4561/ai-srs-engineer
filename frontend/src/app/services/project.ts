@@ -115,6 +115,27 @@ export interface VersionDiff {
   changes: { [key: string]: any };
 }
 
+export interface GitHubConnection {
+  repo_owner: string;
+  repo_name: string;
+  connected: boolean;
+  created_at: string;
+  synced_issues?: { [requirement: string]: string };
+}
+
+export interface GitHubConnectPayload {
+  personal_access_token: string;
+  repo_owner: string;
+  repo_name: string;
+}
+
+export interface SyncResult {
+  created: number;
+  skipped: number;
+  issue_urls: string[];
+  synced_issues?: { [requirement: string]: string };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -211,6 +232,22 @@ export class ProjectService {
   return this.http.get<VersionDiff>(`${this.apiUrl}/${projectId}/versions/diff`, {
     params: { from_version: fromVersion, to_version: toVersion }
   });
+  }
+
+  getGitHubConnection(projectId: number): Observable<GitHubConnection> {
+    return this.http.get<GitHubConnection>(`${this.apiUrl}/${projectId}/github/`);
+  }
+
+  connectGitHubRepo(projectId: number, payload: GitHubConnectPayload): Observable<GitHubConnection> {
+    return this.http.post<GitHubConnection>(`${this.apiUrl}/${projectId}/github/connect`, payload);
+  }
+
+  disconnectGitHubRepo(projectId: number): Observable<{ detail: string }> {
+    return this.http.delete<{ detail: string }>(`${this.apiUrl}/${projectId}/github/`);
+  }
+
+  syncGitHubRequirements(projectId: number): Observable<SyncResult> {
+    return this.http.post<SyncResult>(`${this.apiUrl}/${projectId}/github/sync-requirements`, {});
   }
 }
 

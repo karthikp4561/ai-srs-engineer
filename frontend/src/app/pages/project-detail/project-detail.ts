@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult, PlanningResult, Collaborator, ProjectVersion, VersionDiff  } from '../../services/project';
+import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult, PlanningResult, Collaborator, ProjectVersion, VersionDiff, GitHubConnection, GitHubConnectPayload, SyncResult } from '../../services/project';
 import mermaid from 'mermaid';
 import { FormsModule } from '@angular/forms';
 
@@ -41,6 +41,19 @@ export class ProjectDetail implements OnInit {
   isDiffing = false;
   diffError = '';
 
+  // GitHub Integration state
+  githubConn: GitHubConnection | null = null;
+  isLoadingGithub = false;
+  isConnectingGithub = false;
+  isDisconnectingGithub = false;
+  isSyncingGithub = false;
+  githubError = '';
+  githubSuccessMessage = '';
+  githubPat = '';
+  githubOwner = '';
+  githubRepo = '';
+  syncedIssuesMap: { [req: string]: string } = {};
+
   constructor(
     private route: ActivatedRoute,
     private projectService: ProjectService,
@@ -66,6 +79,7 @@ export class ProjectDetail implements OnInit {
         this.parsePlanning();
         this.loadCollaborators();
         this.loadVersions();
+        this.loadGitHubConnection();
         this.isLoading = false;
         this.cdr.detectChanges();
         this.renderDiagrams();
@@ -106,6 +120,8 @@ export class ProjectDetail implements OnInit {
         this.project = data;
         this.parseAnalysis();
         this.isAnalyzing = false;
+        this.loadVersions();
+        this.loadGitHubConnection();
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -126,6 +142,7 @@ export class ProjectDetail implements OnInit {
         this.project = data;
         this.parseDiagrams();
         this.isGeneratingDiagrams = false;
+        this.loadVersions();
         this.cdr.detectChanges();
         setTimeout(() => this.renderDiagrams(), 0);
       },
@@ -147,6 +164,7 @@ export class ProjectDetail implements OnInit {
       this.project = data;
       this.parseApiSpec();
       this.isGeneratingApiSpec = false;
+      this.loadVersions();
       this.cdr.detectChanges();
     },
     error: (err) => {
@@ -173,6 +191,7 @@ runTechStackGeneration() {
       this.project = data;
       this.parseTechStack();
       this.isGeneratingTechStack = false;
+      this.loadVersions();
       this.cdr.detectChanges();
     },
     error: (err) => {
@@ -232,6 +251,7 @@ runPlanningGeneration() {
       this.project = data;
       this.parsePlanning();
       this.isGeneratingPlanning = false;
+      this.loadVersions();
       this.cdr.detectChanges();
     },
     error: (err) => {
@@ -375,5 +395,160 @@ getAnalysisRemoved(key: string, subField: string): string[] {
 
 formatSubFieldName(key: string): string {
   return key.replace(/_/g, ' ');
+}
+
+// GitHub Integration methods
+loadGitHubConnection() {
+  if (!this.project) return;
+  this.isLoadingGithub = true;
+  this.githubError = '';
+  this.projectService.getGitHubConnection(this.project.id).subscribe({
+    next: (data) => {
+      this.githubConn = data;
+      this.syncedIssuesMap = data.synced_issues || {};
+      this.isLoadingGithub = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isLoadingGithub = false;
+      if (err.status === 404) {
+        this.githubConn = null;
+        this.syncedIssuesMap = {};
+      } else {
+        this.githubError = this.extractErrorMessage(err);
+      }
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+connectGitHub() {
+  if (!this.project || !this.githubOwner.trim() || !this.githubRepo.trim() || !this.githubPat.trim()) {
+    this.githubError = 'Please provide Owner, Repository Name, and Personal Access Token.';
+    return;
+  }
+  this.isConnectingGithub = true;
+  this.githubError = '';
+  this.githubSuccessMessage = '';
+
+  const payload: GitHubConnectPayload = {
+    personal_access_token: this.githubPat.trim(),
+    repo_owner: this.githubOwner.trim(),
+    repo_name: this.githubRepo.trim()
+  };
+
+  this.projectService.connectGitHubRepo(this.project.id, payload).subscribe({
+    next: (conn) => {
+      this.githubConn = conn;
+      this.syncedIssuesMap = conn.synced_issues || {};
+      this.isConnectingGithub = false;
+      this.githubPat = '';
+      this.githubSuccessMessage = `Connected to ${conn.repo_owner}/${conn.repo_name} successfully!`;
+      setTimeout(() => {
+        this.githubSuccessMessage = '';
+        this.cdr.detectChanges();
+      }, 5000);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isConnectingGithub = false;
+      this.githubError = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+disconnectGitHub() {
+  if (!this.project) return;
+  const repoLabel = this.githubConn ? `${this.githubConn.repo_owner}/${this.githubConn.repo_name}` : 'repository';
+  if (!confirm(`Disconnect ${repoLabel} from this project?`)) return;
+
+  this.isDisconnectingGithub = true;
+  this.githubError = '';
+  this.githubSuccessMessage = '';
+
+  this.projectService.disconnectGitHubRepo(this.project.id).subscribe({
+    next: () => {
+      this.githubConn = null;
+      this.syncedIssuesMap = {};
+      this.isDisconnectingGithub = false;
+      this.githubSuccessMessage = 'Repository disconnected.';
+      setTimeout(() => {
+        this.githubSuccessMessage = '';
+        this.cdr.detectChanges();
+      }, 4000);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isDisconnectingGithub = false;
+      this.githubError = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+syncGitHubRequirements() {
+  if (!this.project) return;
+  if (!this.analysis || !this.analysis.functional_requirements?.length) {
+    this.githubError = 'Analyze the project requirements first before syncing.';
+    return;
+  }
+
+  this.isSyncingGithub = true;
+  this.githubError = '';
+  this.githubSuccessMessage = '';
+
+  this.projectService.syncGitHubRequirements(this.project.id).subscribe({
+    next: (result: SyncResult) => {
+      this.isSyncingGithub = false;
+      if (result.synced_issues) {
+        this.syncedIssuesMap = result.synced_issues;
+        if (this.githubConn) {
+          this.githubConn.synced_issues = result.synced_issues;
+        }
+      }
+      const createdMsg = `${result.created} new issue${result.created === 1 ? '' : 's'} created`;
+      const skippedMsg = result.skipped > 0 ? `, ${result.skipped} already synced` : '';
+      this.githubSuccessMessage = `Synced successfully: ${createdMsg}${skippedMsg}!`;
+      setTimeout(() => {
+        this.githubSuccessMessage = '';
+        this.cdr.detectChanges();
+      }, 6000);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isSyncingGithub = false;
+      this.githubError = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+get syncedRequirementsCount(): number {
+  if (!this.analysis?.functional_requirements) return 0;
+  return this.analysis.functional_requirements.filter(req => !!this.syncedIssuesMap[req]).length;
+}
+
+get totalRequirementsCount(): number {
+  return this.analysis?.functional_requirements?.length || 0;
+}
+
+get syncPercentage(): number {
+  if (!this.totalRequirementsCount) return 0;
+  return Math.round((this.syncedRequirementsCount / this.totalRequirementsCount) * 100);
+}
+
+getIssueUrl(req: string): string | null {
+  return this.syncedIssuesMap[req] || null;
+}
+
+getIssueNumber(url: string): string {
+  const match = url?.match(/\/issues\/(\d+)/);
+  return match ? `#${match[1]}` : '#';
+}
+
+getSyncedIssuesList(): { req: string; url: string }[] {
+  if (!this.syncedIssuesMap) return [];
+  return Object.entries(this.syncedIssuesMap).map(([req, url]) => ({ req, url }));
 }
 }

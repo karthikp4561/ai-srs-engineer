@@ -236,6 +236,7 @@ class GitHubConnectionOut(BaseModel):
     repo_name: str
     connected: bool = True
     created_at: datetime
+    synced_issues: Optional[dict] = None
 
     class Config:
         from_attributes = True
@@ -245,3 +246,4 @@ class SyncResult(BaseModel):
     created: int
     skipped: int
     issue_urls: List[str]
+    synced_issues: Optional[dict] = None

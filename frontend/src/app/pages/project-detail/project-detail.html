@@ -118,6 +118,127 @@
 
   </div>
 </div>
+</div>
+
+<div class="plate github-section">
+  <div class="github-header-row">
+    <div class="github-title-group">
+      <svg class="github-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+      </svg>
+      <span class="block-label" style="margin-bottom: 0;">GitHub Integration</span>
+    </div>
+    <div class="github-status-indicator" *ngIf="githubConn">
+      <span class="status-dot connected"></span>
+      <span class="github-status-text">Connected</span>
+    </div>
+    <div class="github-status-indicator" *ngIf="!githubConn && !isLoadingGithub">
+      <span class="status-dot disconnected"></span>
+      <span class="github-status-text">Not Connected</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoadingGithub" class="github-loading">
+    <span class="spinner-small"></span> Checking GitHub repository status…
+  </div>
+
+  <!-- Alerts -->
+  <div *ngIf="githubError" class="alert-error">{{ githubError }}</div>
+  <div *ngIf="githubSuccessMessage" class="alert-success">{{ githubSuccessMessage }}</div>
+
+  <!-- State: NOT CONNECTED -->
+  <div *ngIf="!isLoadingGithub && !githubConn" class="github-connect-form">
+    <p class="github-desc">
+      Connect this project to a GitHub repository to automatically publish functional requirements as tracked GitHub Issues.
+    </p>
+
+    <div class="github-fields-grid">
+      <div class="field">
+        <span class="field-label">Repository Owner</span>
+        <input type="text" placeholder="e.g. octocat, my-org" [(ngModel)]="githubOwner" name="githubOwner" />
+      </div>
+
+      <div class="field">
+        <span class="field-label">Repository Name</span>
+        <input type="text" placeholder="e.g. my-app" [(ngModel)]="githubRepo" name="githubRepo" />
+      </div>
+
+      <div class="field field-full">
+        <div class="field-label-row">
+          <span class="field-label">Personal Access Token (PAT)</span>
+          <span class="field-hint">Requires <code>repo</code> scope</span>
+        </div>
+        <input type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [(ngModel)]="githubPat" name="githubPat" autocomplete="off" />
+        <span class="field-subtext">Tokens are encrypted securely at rest using AES-GCM and never exposed to the client.</span>
+      </div>
+    </div>
+
+    <div class="github-actions">
+      <button class="btn-primary btn-small" (click)="connectGitHub()" [disabled]="isConnectingGithub || !githubOwner || !githubRepo || !githubPat">
+        {{ isConnectingGithub ? 'Verifying & Connecting…' : 'Connect Repository' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- State: CONNECTED -->
+  <div *ngIf="!isLoadingGithub && githubConn" class="github-connected-panel">
+    <div class="repo-info-card">
+      <div class="repo-details">
+        <a [href]="'https://github.com/' + githubConn.repo_owner + '/' + githubConn.repo_name" target="_blank" rel="noopener noreferrer" class="repo-full-name">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1h-8a1 1 0 00-1 1v6.708A2.486 2.486 0 014.5 9h8V1.5z"/>
+          </svg>
+          <strong>{{ githubConn.repo_owner }}/{{ githubConn.repo_name }}</strong>
+          <span class="external-arrow">↗</span>
+        </a>
+        <span class="repo-meta">Connected {{ githubConn.created_at | date:'mediumDate' }}</span>
+      </div>
+
+      <div class="repo-actions">
+        <button class="btn-ghost btn-small danger" (click)="disconnectGitHub()" [disabled]="isDisconnectingGithub">
+          {{ isDisconnectingGithub ? 'Disconnecting…' : 'Disconnect' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Sync Requirements Status Bar -->
+    <div class="github-sync-stats" *ngIf="analysis">
+      <div class="sync-stats-header">
+        <div>
+          <span class="sync-title">Requirements Synchronized</span>
+          <span class="sync-count">{{ syncedRequirementsCount }} of {{ totalRequirementsCount }} synced</span>
+        </div>
+        <button class="btn-primary btn-small" (click)="syncGitHubRequirements()" [disabled]="isSyncingGithub || totalRequirementsCount === 0">
+          <span class="sync-icon" [class.spinning]="isSyncingGithub">🔄</span>
+          {{ isSyncingGithub ? 'Syncing to GitHub…' : (syncedRequirementsCount === 0 ? 'Sync Requirements as Issues' : 'Sync Remaining Requirements') }}
+        </button>
+      </div>
+
+      <div class="progress-bar-track" *ngIf="totalRequirementsCount > 0">
+        <div class="progress-bar-fill" [style.width.%]="syncPercentage"></div>
+      </div>
+    </div>
+
+    <div *ngIf="!analysis" class="github-analyze-hint">
+      <span>ℹ️ Analyze the project with AI below to generate functional requirements for GitHub issue sync.</span>
+    </div>
+
+    <!-- Synced Issues Breakdown / List -->
+    <div class="synced-issues-container" *ngIf="getSyncedIssuesList().length > 0">
+      <span class="field-label">Synced GitHub Issues ({{ getSyncedIssuesList().length }})</span>
+      <div class="synced-issues-scroll">
+        <div class="synced-issue-item" *ngFor="let item of getSyncedIssuesList()">
+          <span class="issue-req-preview">{{ item.req }}</span>
+          <a [href]="item.url" target="_blank" rel="noopener noreferrer" class="issue-badge-link">
+            <span class="issue-tag">Issue {{ getIssueNumber(item.url) }}</span>
+            <span class="external-arrow">↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
     <div class="section">
       <h3>Description</h3>
@@ -155,9 +276,32 @@
       </div>
 
       <div class="section">
-        <h3>Functional Requirements</h3>
-        <ul>
-          <li *ngFor="let req of analysis.functional_requirements">{{ req }}</li>
+        <div class="section-title-row">
+          <h3>Functional Requirements</h3>
+          <div *ngIf="githubConn" class="req-github-sync-header">
+            <button class="btn-ghost btn-small sync-inline-btn" (click)="syncGitHubRequirements()" [disabled]="isSyncingGithub" title="Synchronize requirements with GitHub Issues">
+              <span class="sync-icon" [class.spinning]="isSyncingGithub">🔄</span>
+              {{ isSyncingGithub ? 'Syncing…' : 'Sync to GitHub Issues' }}
+            </button>
+          </div>
+        </div>
+        <ul class="req-list">
+          <li *ngFor="let req of analysis.functional_requirements" class="req-list-item">
+            <span class="req-text">{{ req }}</span>
+            <span *ngIf="githubConn && getIssueUrl(req)" class="req-issue-wrapper">
+              <a [href]="getIssueUrl(req)!" target="_blank" rel="noopener noreferrer" class="issue-badge-pill" title="View Issue on GitHub">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                  <path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ getIssueNumber(getIssueUrl(req)!) }} on GitHub</span>
+                <span class="arrow">↗</span>
+              </a>
+            </span>
+            <span *ngIf="githubConn && !getIssueUrl(req)" class="req-issue-pending">
+              <span>Not synced</span>
+            </span>
+          </li>
         </ul>
       </div>
 

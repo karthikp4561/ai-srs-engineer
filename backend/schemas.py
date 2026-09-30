@@ -209,3 +209,41 @@ class CollaboratorOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class VersionOut(BaseModel):
+    id: int
+    version_number: int
+    change_summary: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class VersionDiffOut(BaseModel):
+    from_version: int
+    to_version: int
+    changes: dict
+
+class GitHubConnectRequest(BaseModel):
+    personal_access_token: str
+    repo_owner: str
+    repo_name: str
+
+
+class GitHubConnectionOut(BaseModel):
+    repo_owner: str
+    repo_name: str
+    connected: bool = True
+    created_at: datetime
+    synced_issues: Optional[dict] = None
+
+    class Config:
+        from_attributes = True
+
+
+class SyncResult(BaseModel):
+    created: int
+    skipped: int
+    issue_urls: List[str]
+    synced_issues: Optional[dict] = None

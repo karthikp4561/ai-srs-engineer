@@ -6,7 +6,7 @@ from sqlalchemy import text
 from database import get_db, engine, Base
 import models
 
-from routers import auth, projects, admin, collaboration, versions
+from routers import auth, projects, admin, collaboration, versions, github_integration
 
 Base.metadata.create_all(bind=engine)
 
@@ -35,3 +35,4 @@ app.include_router(projects.router)
 app.include_router(admin.router)
 app.include_router(collaboration.router)
 app.include_router(versions.router)
+app.include_router(github_integration.router)

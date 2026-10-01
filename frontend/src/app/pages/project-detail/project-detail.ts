@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult, PlanningResult, Collaborator, ProjectVersion, VersionDiff, GitHubConnection, GitHubConnectPayload, SyncResult } from '../../services/project';
+import { ProjectService, Project, AnalysisResult, DiagramResult, ApiSpecResult, TechStackResult, PlanningResult, Collaborator, ProjectVersion, VersionDiff, GitHubConnection, GitHubConnectPayload, SyncResult, TraceabilityMatrixResult, TraceabilityItem } from '../../services/project';
 import mermaid from 'mermaid';
 import { FormsModule } from '@angular/forms';
 
@@ -30,6 +30,11 @@ export class ProjectDetail implements OnInit {
   isGeneratingApiSpec = false;
   isGeneratingTechStack = false;
   isGeneratingPlanning = false;
+  isGeneratingTraceability = false;
+  traceabilityError = '';
+  traceabilityFilter: 'all' | 'fully_traced' | 'partially_traced' | 'untraced' | 'ambiguous' = 'all';
+  traceabilitySearch = '';
+  traceability: TraceabilityMatrixResult | null = null;
   errorMessage = '';
   diagramsRendered = false;
   isExportingPdf = false;
@@ -77,6 +82,7 @@ export class ProjectDetail implements OnInit {
         this.parseApiSpec();
         this.parseTechStack();
         this.parsePlanning();
+        this.parseTraceability();
         this.loadCollaborators();
         this.loadVersions();
         this.loadGitHubConnection();
@@ -260,6 +266,119 @@ runPlanningGeneration() {
       this.cdr.detectChanges();
     }
   });
+}
+
+parseTraceability() {
+  if (this.project?.traceability_json) {
+    try {
+      this.traceability = JSON.parse(this.project.traceability_json);
+    } catch (e) {
+      this.traceability = null;
+    }
+  } else {
+    this.traceability = null;
+  }
+}
+
+runTraceabilityGeneration() {
+  if (!this.project) return;
+  this.isGeneratingTraceability = true;
+  this.traceabilityError = '';
+
+  this.projectService.generateTraceability(this.project.id).subscribe({
+    next: (data) => {
+      this.project = data;
+      this.parseTraceability();
+      this.isGeneratingTraceability = false;
+      this.loadVersions();
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isGeneratingTraceability = false;
+      this.traceabilityError = this.extractErrorMessage(err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+setTraceabilityFilter(filter: 'all' | 'fully_traced' | 'partially_traced' | 'untraced' | 'ambiguous') {
+  this.traceabilityFilter = filter;
+}
+
+filteredTraceabilityItems(): TraceabilityItem[] {
+  if (!this.traceability?.items) return [];
+  let items = this.traceability.items;
+
+  if (this.traceabilityFilter === 'fully_traced') {
+    items = items.filter(it => it.status === 'fully_traced');
+  } else if (this.traceabilityFilter === 'partially_traced') {
+    items = items.filter(it => it.status === 'partially_traced');
+  } else if (this.traceabilityFilter === 'untraced') {
+    items = items.filter(it => it.status === 'untraced');
+  } else if (this.traceabilityFilter === 'ambiguous') {
+    items = items.filter(it => it.is_ambiguous || (it.ambiguity_flags && it.ambiguity_flags.length > 0));
+  }
+
+  if (this.traceabilitySearch.trim()) {
+    const q = this.traceabilitySearch.toLowerCase().trim();
+    items = items.filter(it =>
+      (it.requirement_id && it.requirement_id.toLowerCase().includes(q)) ||
+      (it.requirement_text && it.requirement_text.toLowerCase().includes(q)) ||
+      (it.diagram_elements && it.diagram_elements.some(d => d && d.toLowerCase().includes(q))) ||
+      (it.api_endpoints && it.api_endpoints.some(a => a && a.toLowerCase().includes(q))) ||
+      (it.github_issue_number && it.github_issue_number.toLowerCase().includes(q)) ||
+      (it.validation_notes && it.validation_notes.toLowerCase().includes(q))
+    );
+  }
+
+  return items;
+}
+
+get fullyTracedCount(): number {
+  return this.traceability?.fully_traced_count || 0;
+}
+
+get partiallyTracedCount(): number {
+  return this.traceability?.partially_traced_count || 0;
+}
+
+get untracedCount(): number {
+  return this.traceability?.untraced_count || 0;
+}
+
+get ambiguousCount(): number {
+  if (!this.traceability?.items) return 0;
+  return this.traceability.items.filter(it => it.is_ambiguous || (it.ambiguity_flags && it.ambiguity_flags.length > 0)).length;
+}
+
+traceabilityStatusBadgeClass(status: string): string {
+  switch (status) {
+    case 'fully_traced':
+      return 'status-traced-full';
+    case 'partially_traced':
+      return 'status-traced-partial';
+    case 'untraced':
+      return 'status-traced-untraced';
+    default:
+      return 'status-traced-unknown';
+  }
+}
+
+traceabilityStatusLabel(status: string): string {
+  switch (status) {
+    case 'fully_traced':
+      return 'Fully Traced';
+    case 'partially_traced':
+      return 'Partially Traced';
+    case 'untraced':
+      return 'Orphan / Untraced';
+    default:
+      return status ? status.replace(/_/g, ' ') : 'Unknown';
+  }
+}
+
+coveragePercentage(score: number): number {
+  return Math.round((score || 0) * 100);
 }
 
 impactClass(impact: string): string {

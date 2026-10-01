@@ -4,13 +4,14 @@ from typing import List
 
 from database import get_db
 from models import Project, User, AIUsageLog, ProjectCollaborator
-from schemas import ProjectCreate, ProjectUpdate, ProjectOut
+from schemas import ProjectCreate, ProjectUpdate, ProjectOut, TraceabilityMatrixResult
 from dependencies import get_current_user
 from collaboration_dependencies import require_viewer, require_editor, require_owner
 from versioning_service import save_version
 
 import json
 from ai_service import analyze_project_description, generate_diagrams, generate_api_spec, generate_tech_stack, generate_project_plan
+from traceability_service import build_traceability_matrix
 
 from fastapi.responses import StreamingResponse
 from export_service import generate_pdf, generate_docx
@@ -245,3 +246,49 @@ def export_docx(
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
+
+
+@router.post("/{project_id}/traceability", response_model=ProjectOut)
+def create_traceability_matrix(
+    project: Project = Depends(require_editor),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not project.analysis_json:
+        raise HTTPException(status_code=400, detail="Project must be analyzed before generating a traceability matrix")
+
+    try:
+        matrix_result = build_traceability_matrix(project, db)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Traceability matrix generation failed: {str(e)}")
+
+    project.traceability_json = json.dumps(matrix_result)
+    db.add(AIUsageLog(user_id=current_user.id, project_id=project.id, action="traceability"))
+    db.commit()
+    db.refresh(project)
+    save_version(db, project, current_user.id, "Traceability matrix generated")
+    return project
+
+
+@router.get("/{project_id}/traceability", response_model=TraceabilityMatrixResult)
+def get_traceability_matrix(
+    project: Project = Depends(require_viewer),
+    db: Session = Depends(get_db),
+):
+    if not project.analysis_json:
+        raise HTTPException(status_code=400, detail="Project must be analyzed before viewing traceability matrix")
+
+    if project.traceability_json:
+        try:
+            return json.loads(project.traceability_json)
+        except Exception:
+            pass
+
+    try:
+        return build_traceability_matrix(project, db)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not compute traceability matrix: {str(e)}")

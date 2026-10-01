@@ -142,6 +142,7 @@ class ProjectOut(BaseModel):
     api_spec_json: Optional[str] = None
     tech_stack_json: Optional[str] = None
     planning_json: Optional[str] = None
+    traceability_json: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -247,3 +248,36 @@ class SyncResult(BaseModel):
     skipped: int
     issue_urls: List[str]
     synced_issues: Optional[dict] = None
+
+
+class TraceabilityItem(BaseModel):
+    requirement_id: str
+    requirement_text: str
+    diagram_elements: List[str] = []
+    api_endpoints: List[str] = []
+    github_issue_url: Optional[str] = None
+    github_issue_number: Optional[str] = None
+    status: str  # fully_traced, partially_traced, untraced
+    missing_artifacts: List[str] = []
+    coverage_score: float = 0.0
+    validation_notes: Optional[str] = None
+    ambiguity_flags: List[str] = []
+    is_ambiguous: bool = False
+
+
+class TraceabilityMatrixResult(BaseModel):
+    items: List[TraceabilityItem]
+    total_requirements: int
+    fully_traced_count: int
+    partially_traced_count: int
+    untraced_count: int
+    diagram_coverage_count: int
+    api_coverage_count: int
+    github_coverage_count: int
+    completeness_score: str
+    completeness_percentage: int
+    validation_summary: str
+    orphaned_requirements: List[str] = []
+    generated_at: str
+    requirements_quality_score: int = 100
+    ambiguous_requirements_count: int = 0

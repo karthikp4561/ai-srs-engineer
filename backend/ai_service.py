@@ -291,4 +291,63 @@ def generate_project_plan(description: str, functional_requirements: list, const
     except json.JSONDecodeError as e:
         raise ValueError(f"AI returned invalid JSON: {e}\nRaw response: {raw_text[:500]}")
 
+
+TRACEABILITY_PROMPT_TEMPLATE = """You are a senior software quality and systems architect. Analyze the functional requirements of a software project against its architectural artifacts (UML diagrams and API endpoints) to construct a comprehensive Requirements Traceability Matrix.
+
+Functional Requirements:
+{requirements}
+
+UML Diagrams (Mermaid.js):
+{diagrams}
+
+API Specification Endpoints:
+{api_endpoints}
+
+Instructions:
+1. For EACH functional requirement (by its index from 0 to N-1), identify:
+   - "diagram_elements": list of specific diagram elements that reference or model it (e.g. Use Case actions/actors like "Use Case: User Registration", Class names/methods like "Class: User.register()", ERD entities like "ERD: users table"). If no diagram elements reference it, return [].
+   - "api_endpoints": list of specific API endpoints that implement it (e.g. "POST /api/auth/register"). If no API endpoints implement it, return [].
+   - "validation_notes": a concise 1-sentence note explaining how this requirement is implemented or what is missing.
+2. Provide a 1-2 sentence "validation_summary" describing the overall coverage, completeness, and any gaps.
+
+Return ONLY a valid JSON object (no markdown, no code fences, no extra text) with exactly this structure:
+{{
+  "mappings": [
+    {{
+      "requirement_index": 0,
+      "diagram_elements": ["Use Case: User Login", "Class: AuthService", "ERD: users"],
+      "api_endpoints": ["POST /api/auth/login"],
+      "validation_notes": "Implemented via authentication endpoint and User entity"
+    }}
+  ],
+  "validation_summary": "Overall requirements traceability assessment."
+}}
+
+Respond with ONLY the JSON object, nothing else."""
+
+
+def generate_traceability_matrix_ai(requirements: list, diagrams_summary: str, api_endpoints_summary: str) -> dict:
+    prompt = TRACEABILITY_PROMPT_TEMPLATE.format(
+        requirements="\n".join(f"[{i}] {r}" for i, r in enumerate(requirements)),
+        diagrams=diagrams_summary if diagrams_summary else "No UML diagrams generated yet.",
+        api_endpoints=api_endpoints_summary if api_endpoints_summary else "No API specification endpoints generated yet.",
+    )
+
+    response = client.chat.completions.create(
+        model="openai/gpt-oss-120b",
+        messages=[
+            {"role": "system", "content": "You are a precise software quality and requirements engineer that only outputs valid JSON."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2,
+    )
+
+    raw_text = response.choices[0].message.content.strip()
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text, flags=re.MULTILINE).strip()
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"AI returned invalid JSON: {e}\\nRaw response: {raw_text[:500]}")
+
     

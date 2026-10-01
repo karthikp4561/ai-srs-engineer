@@ -492,5 +492,216 @@
         </div>
       </div>
     </div>
+
+    <!-- Traceability & Requirements Validation Section -->
+    <div *ngIf="analysis" class="traceability-section">
+      <div class="section-header-row">
+        <div>
+          <h2>Requirements Traceability & Validation</h2>
+          <span class="eyebrow" style="margin-bottom: 0;">Verification & Traceability Matrix (RTM)</span>
+        </div>
+        <button *ngIf="!traceability" class="btn-primary" (click)="runTraceabilityGeneration()" [disabled]="isGeneratingTraceability">
+          <span class="sync-icon" [class.spinning]="isGeneratingTraceability" *ngIf="isGeneratingTraceability">🔄</span>
+          {{ isGeneratingTraceability ? 'Constructing Matrix…' : 'Generate Traceability Matrix' }}
+        </button>
+        <button *ngIf="traceability" class="btn-secondary" (click)="runTraceabilityGeneration()" [disabled]="isGeneratingTraceability">
+          <span class="sync-icon" [class.spinning]="isGeneratingTraceability" *ngIf="isGeneratingTraceability">🔄</span>
+          {{ isGeneratingTraceability ? 'Reconstructing…' : 'Regenerate Matrix' }}
+        </button>
+      </div>
+
+      <div *ngIf="traceabilityError" class="alert-error">{{ traceabilityError }}</div>
+
+      <!-- Empty State -->
+      <div *ngIf="!traceability && !isGeneratingTraceability" class="traceability-empty-plate">
+        <div class="empty-icon">📐</div>
+        <h4>No Traceability Matrix Generated Yet</h4>
+        <p>Map your functional requirements forward to UML diagrams (Use Case, Class, ERD), API specification endpoints, and GitHub issue tracking. Identify orphan requirements and detect ambiguity in specifications.</p>
+        <button class="btn-primary btn-small" (click)="runTraceabilityGeneration()" [disabled]="isGeneratingTraceability">
+          Generate Matrix Now
+        </button>
+      </div>
+
+      <!-- Matrix Dashboard & Details -->
+      <div *ngIf="traceability">
+        <!-- KPI Metrics Grid -->
+        <div class="traceability-kpis">
+          <div class="kpi-card completeness-kpi">
+            <span class="kpi-label">Completeness</span>
+            <div class="kpi-big-value">{{ traceability.completeness_percentage }}%</div>
+            <div class="kpi-progress-bar">
+              <div class="kpi-progress-fill" [style.width.%]="traceability.completeness_percentage"></div>
+            </div>
+            <span class="kpi-sub">{{ traceability.completeness_score }}</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Quality Score</span>
+            <div class="kpi-big-value" [class.score-good]="(traceability.requirements_quality_score || 100) >= 80" [class.score-warn]="(traceability.requirements_quality_score || 100) < 80">
+              {{ traceability.requirements_quality_score || 100 }}<span class="kpi-unit">/100</span>
+            </div>
+            <span class="kpi-sub">{{ ambiguousCount }} ambiguous terms detected</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Diagram Coverage</span>
+            <div class="kpi-big-value">{{ traceability.diagram_coverage_count }}<span class="kpi-unit">/{{ traceability.total_requirements }}</span></div>
+            <span class="kpi-sub">Mapped to UML architecture</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">API Coverage</span>
+            <div class="kpi-big-value">{{ traceability.api_coverage_count }}<span class="kpi-unit">/{{ traceability.total_requirements }}</span></div>
+            <span class="kpi-sub">Implemented in endpoints</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">GitHub Synced</span>
+            <div class="kpi-big-value">{{ traceability.github_coverage_count }}<span class="kpi-unit">/{{ traceability.total_requirements }}</span></div>
+            <span class="kpi-sub">Tracked in repo issues</span>
+          </div>
+        </div>
+
+        <!-- AI Validation Summary Callout -->
+        <div class="validation-summary-card">
+          <div class="validation-header">
+            <span class="validation-badge">AI Assessment</span>
+            <span class="validation-timestamp">Generated {{ traceability.generated_at | date:'medium' }}</span>
+          </div>
+          <p class="validation-text">{{ traceability.validation_summary }}</p>
+        </div>
+
+        <!-- Orphaned Requirements Warning (if any) -->
+        <div *ngIf="traceability.orphaned_requirements.length > 0" class="orphaned-warning-plate">
+          <div class="warning-title">
+            <span class="warning-icon">⚠️</span>
+            <strong>{{ traceability.orphaned_requirements.length }} Orphaned Requirement(s) Detected</strong>
+          </div>
+          <p class="warning-subtext">These functional requirements have no corresponding UML diagram elements or API endpoints. Consider updating diagrams or endpoints to maintain complete coverage.</p>
+          <ul class="orphaned-list">
+            <li *ngFor="let req of traceability.orphaned_requirements">{{ req }}</li>
+          </ul>
+        </div>
+
+        <!-- Ambiguity Notice (if any) -->
+        <div *ngIf="ambiguousCount > 0" class="ambiguity-notice-plate">
+          <span class="ambiguity-icon">ℹ️</span>
+          <span><strong>{{ ambiguousCount }} requirement(s) contain subjective or unquantified wording.</strong> Review highlighted quality alerts in the matrix below for recommended precision improvements.</span>
+        </div>
+
+        <!-- Filter and Search Toolbar -->
+        <div class="matrix-toolbar">
+          <div class="filter-pills">
+            <button class="filter-pill" [class.active]="traceabilityFilter === 'all'" (click)="setTraceabilityFilter('all')">
+              All ({{ traceability.total_requirements }})
+            </button>
+            <button class="filter-pill pill-traced" [class.active]="traceabilityFilter === 'fully_traced'" (click)="setTraceabilityFilter('fully_traced')">
+              Fully Traced ({{ fullyTracedCount }})
+            </button>
+            <button class="filter-pill pill-partial" [class.active]="traceabilityFilter === 'partially_traced'" (click)="setTraceabilityFilter('partially_traced')">
+              Partially Traced ({{ partiallyTracedCount }})
+            </button>
+            <button class="filter-pill pill-untraced" [class.active]="traceabilityFilter === 'untraced'" (click)="setTraceabilityFilter('untraced')">
+              Orphaned ({{ untracedCount }})
+            </button>
+            <button class="filter-pill pill-ambiguous" [class.active]="traceabilityFilter === 'ambiguous'" (click)="setTraceabilityFilter('ambiguous')">
+              Quality Alerts ({{ ambiguousCount }})
+            </button>
+          </div>
+
+          <div class="search-box">
+            <input type="text" [(ngModel)]="traceabilitySearch" placeholder="Search requirement, endpoint, diagram..." />
+            <button *ngIf="traceabilitySearch" class="search-clear" (click)="traceabilitySearch = ''">✕</button>
+          </div>
+        </div>
+
+        <!-- Matrix Cards List -->
+        <div class="traceability-list">
+          <div *ngIf="filteredTraceabilityItems().length === 0" class="empty-filter-note">
+            No requirements match the selected filter or search term.
+          </div>
+
+          <div class="matrix-card" *ngFor="let item of filteredTraceabilityItems()">
+            <!-- Card Header -->
+            <div class="matrix-card-header">
+              <div class="matrix-id-group">
+                <span class="req-id-badge">{{ item.requirement_id }}</span>
+                <span class="trace-status-badge" [ngClass]="traceabilityStatusBadgeClass(item.status)">
+                  {{ traceabilityStatusLabel(item.status) }}
+                </span>
+                <span *ngIf="item.is_ambiguous" class="ambiguity-tag-badge" title="Requirement text contains vague terms">
+                  Quality Alert
+                </span>
+              </div>
+              <div class="matrix-coverage-group">
+                <div class="coverage-bar-track">
+                  <div class="coverage-bar-fill" [style.width.%]="coveragePercentage(item.coverage_score)"></div>
+                </div>
+                <span class="coverage-text">{{ coveragePercentage(item.coverage_score) }}% Coverage</span>
+              </div>
+            </div>
+
+            <!-- Requirement Text -->
+            <div class="matrix-req-text">
+              {{ item.requirement_text }}
+            </div>
+
+            <!-- Mapping Grid -->
+            <div class="matrix-mappings-grid">
+              <!-- Diagrams -->
+              <div class="mapping-col">
+                <span class="mapping-col-label">UML Architecture</span>
+                <div *ngIf="item.diagram_elements.length > 0" class="mapping-tags">
+                  <span class="diag-tag" *ngFor="let diag of item.diagram_elements">
+                    <span class="tag-icon">📊</span> {{ diag }}
+                  </span>
+                </div>
+                <div *ngIf="item.diagram_elements.length === 0" class="missing-artifact">
+                  <span class="missing-dot"></span> Missing diagram modeling
+                </div>
+              </div>
+
+              <!-- API Endpoints -->
+              <div class="mapping-col">
+                <span class="mapping-col-label">API Endpoints</span>
+                <div *ngIf="item.api_endpoints.length > 0" class="mapping-tags">
+                  <span class="api-tag" *ngFor="let ep of item.api_endpoints">
+                    <span class="tag-icon">⚡</span> {{ ep }}
+                  </span>
+                </div>
+                <div *ngIf="item.api_endpoints.length === 0" class="missing-artifact">
+                  <span class="missing-dot"></span> Missing API endpoint
+                </div>
+              </div>
+
+              <!-- GitHub Issue -->
+              <div class="mapping-col">
+                <span class="mapping-col-label">GitHub Issue</span>
+                <div *ngIf="item.github_issue_url">
+                  <a [href]="item.github_issue_url" target="_blank" rel="noopener noreferrer" class="issue-badge-link">
+                    <span class="issue-tag">{{ item.github_issue_number || 'Issue' }} on GitHub</span>
+                    <span class="external-arrow">↗</span>
+                  </a>
+                </div>
+                <div *ngIf="!item.github_issue_url" class="not-synced-note">
+                  <span class="dim-dot"></span> Not synced as issue
+                </div>
+              </div>
+            </div>
+
+            <!-- Validation Note / Quality Feedback Footer -->
+            <div class="matrix-card-footer" *ngIf="item.validation_notes || (item.ambiguity_flags && item.ambiguity_flags.length > 0)">
+              <div class="validation-note-text">
+                <span class="note-label">Validation:</span>
+                <span>{{ item.validation_notes }}</span>
+              </div>
+              <div class="ambiguity-flags-list" *ngIf="item.ambiguity_flags && item.ambiguity_flags.length > 0">
+                <span class="flag-chip" *ngFor="let flag of item.ambiguity_flags">⚠️ {{ flag }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

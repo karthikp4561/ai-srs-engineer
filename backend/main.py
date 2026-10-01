@@ -9,6 +9,12 @@ import models
 from routers import auth, projects, admin, collaboration, versions, github_integration
 
 Base.metadata.create_all(bind=engine)
+try:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS traceability_json TEXT;"))
+        conn.commit()
+except Exception:
+    pass
 
 app = FastAPI(title="AI Software Requirement Engineer")
 

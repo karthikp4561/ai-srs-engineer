@@ -53,6 +53,7 @@ export interface Project {
   api_spec_json: string | null;
   tech_stack_json: string | null;
   planning_json: string | null;
+  traceability_json: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -134,6 +135,39 @@ export interface SyncResult {
   skipped: number;
   issue_urls: string[];
   synced_issues?: { [requirement: string]: string };
+}
+
+export interface TraceabilityItem {
+  requirement_id: string;
+  requirement_text: string;
+  diagram_elements: string[];
+  api_endpoints: string[];
+  github_issue_url?: string | null;
+  github_issue_number?: string | null;
+  status: 'fully_traced' | 'partially_traced' | 'untraced' | string;
+  missing_artifacts: string[];
+  coverage_score: number;
+  validation_notes?: string | null;
+  ambiguity_flags?: string[];
+  is_ambiguous?: boolean;
+}
+
+export interface TraceabilityMatrixResult {
+  items: TraceabilityItem[];
+  total_requirements: number;
+  fully_traced_count: number;
+  partially_traced_count: number;
+  untraced_count: number;
+  diagram_coverage_count: number;
+  api_coverage_count: number;
+  github_coverage_count: number;
+  completeness_score: string;
+  completeness_percentage: number;
+  validation_summary: string;
+  orphaned_requirements: string[];
+  generated_at: string;
+  requirements_quality_score?: number;
+  ambiguous_requirements_count?: number;
 }
 
 @Injectable({
@@ -248,6 +282,14 @@ export class ProjectService {
 
   syncGitHubRequirements(projectId: number): Observable<SyncResult> {
     return this.http.post<SyncResult>(`${this.apiUrl}/${projectId}/github/sync-requirements`, {});
+  }
+
+  generateTraceability(id: number): Observable<Project> {
+    return this.http.post<Project>(`${this.apiUrl}/${id}/traceability`, {});
+  }
+
+  getTraceability(id: number): Observable<TraceabilityMatrixResult> {
+    return this.http.get<TraceabilityMatrixResult>(`${this.apiUrl}/${id}/traceability`);
   }
 }
 

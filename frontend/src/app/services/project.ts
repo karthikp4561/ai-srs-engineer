@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface AnalysisResult {
   objectives: string[];
@@ -174,7 +175,7 @@ export interface TraceabilityMatrixResult {
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = 'http://127.0.0.1:8000/projects';
+  private apiUrl = `${environment.apiUrl}/projects`;
 
   constructor(private http: HttpClient) {}
 

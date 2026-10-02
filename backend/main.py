@@ -1,3 +1,5 @@
+import os
+import time
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -8,19 +10,30 @@ import models
 
 from routers import auth, projects, admin, collaboration, versions, github_integration
 
-Base.metadata.create_all(bind=engine)
-try:
-    with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS traceability_json TEXT;"))
-        conn.commit()
-except Exception:
-    pass
+# Retry DB initialization on startup to ensure Postgres container is ready
+max_retries = 10
+for attempt in range(max_retries):
+    try:
+        Base.metadata.create_all(bind=engine)
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS traceability_json TEXT;"))
+            conn.commit()
+        break
+    except Exception as e:
+        if attempt == max_retries - 1:
+            print(f"Warning: Database initialization error: {e}")
+        else:
+            time.sleep(2)
 
 app = FastAPI(title="AI Software Requirement Engineer")
 
+# Configure CORS origins from environment variable
+allowed_origins_raw = os.getenv("ALLOWED_ORIGINS", "*")
+allowed_origins = [o.strip() for o in allowed_origins_raw.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=["*"] if "*" in allowed_origins else allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

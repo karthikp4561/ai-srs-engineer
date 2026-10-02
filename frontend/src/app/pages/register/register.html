@@ -1,22 +1,54 @@
-<div class="auth-container">
-  <form (ngSubmit)="onSubmit()" class="auth-form">
-    <h2>Create Account</h2>
+<div class="auth-split">
+  <aside class="auth-visual">
+    <div class="grid-overlay"></div>
+    <div class="visual-content">
+      <span class="eyebrow eyebrow-light">Validated AI-Assisted Requirements Engineering</span>
+      <h2>From a rough idea<br>to a full specification.</h2>
+      <p>Describe your project in plain language. Get objectives, requirements, and scope back in minutes.</p>
 
-    <div *ngIf="errorMessage" class="error-box">{{ errorMessage }}</div>
+      <div class="mock-spec">
+        <div class="mock-spec-header">
+          <span>SPEC-014</span>
+          <span class="mock-badge">Analyzed</span>
+        </div>
+        <div class="mock-line mock-line-title"></div>
+        <div class="mock-row"><span class="mock-num">01</span><div class="mock-line"></div></div>
+        <div class="mock-row"><span class="mock-num">02</span><div class="mock-line short"></div></div>
+        <div class="mock-row"><span class="mock-num">03</span><div class="mock-line"></div></div>
+      </div>
+    </div>
+  </aside>
 
-    <label>Name</label>
-    <input type="text" [(ngModel)]="name" name="name" required />
+  <section class="auth-form-panel">
+    <div class="auth-form-inner">
+      <span class="eyebrow">System Registration // Auth-02</span>
+      <h1>Create account</h1>
+      <p class="subtext">Start drafting verified requirements and specifications.</p>
 
-    <label>Email</label>
-    <input type="email" [(ngModel)]="email" name="email" required />
+      <form (ngSubmit)="onSubmit()">
+        <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
 
-    <label>Password</label>
-    <input type="password" [(ngModel)]="password" name="password" required minlength="6" />
+        <label class="field">
+          <span class="field-label">Name</span>
+          <input type="text" [(ngModel)]="name" name="name" required autocomplete="name" />
+        </label>
 
-    <button type="submit" [disabled]="isLoading">
-      {{ isLoading ? 'Creating account...' : 'Register' }}
-    </button>
+        <label class="field">
+          <span class="field-label">Email</span>
+          <input type="email" [(ngModel)]="email" name="email" required autocomplete="email" />
+        </label>
 
-    <p>Already have an account? <a routerLink="/login">Login</a></p>
-  </form>
+        <label class="field">
+          <span class="field-label">Password</span>
+          <input type="password" [(ngModel)]="password" name="password" required minlength="6" autocomplete="new-password" />
+        </label>
+
+        <button type="submit" class="btn-primary btn-block" [disabled]="isLoading">
+          {{ isLoading ? 'Creating account…' : 'Register' }}
+        </button>
+
+        <p class="switch-line">Already have an account? <a routerLink="/login">Sign in</a></p>
+      </form>
+    </div>
+  </section>
 </div>
